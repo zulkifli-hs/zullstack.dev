@@ -77,7 +77,7 @@ export function SpecularLayer() {
       ref={ref}
       aria-hidden
       data-sheen
-      className="glass-sheen pointer-events-none absolute inset-0 z-1 rounded-[inherit]"
+      className="glass-sheen pointer-events-none absolute inset-0 -z-1 rounded-[inherit]"
     />
   );
 }

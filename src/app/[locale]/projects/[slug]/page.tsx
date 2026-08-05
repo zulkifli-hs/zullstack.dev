@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 
+import { GlassPanel } from "@/components/glass/glass-panel";
 import { Tag } from "@/components/lab/section";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -83,7 +84,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
         </div>
       )}
 
-      <dl className="border-hairline/60 text-muted-foreground mt-8 grid grid-cols-2 gap-4 border-y py-5 font-mono text-xs sm:grid-cols-3">
+      <GlassPanel as="dl" variant="glass" tier="card" padding="sm" className="text-muted-foreground mt-8 grid grid-cols-2 gap-4 font-mono text-xs sm:grid-cols-3">
         <div>
           <dt className="lab-label">year</dt>
           <dd className="tabular mt-1">{project.year}</dd>
@@ -98,7 +99,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
           <dt className="lab-label">stack</dt>
           <dd className="mt-1">{project.techStack.length}</dd>
         </div>
-      </dl>
+      </GlassPanel>
 
       <div className="mt-8 leading-relaxed text-pretty">{pick(project.description, locale)}</div>
 

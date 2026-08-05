@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
+import { GlassPanel } from "@/components/glass/glass-panel";
 import { EmptyState, Section, SectionHeading } from "@/components/lab/section";
 import { About } from "@/components/sections/about";
 import {
@@ -155,17 +156,25 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </Section>
 
       <Section>
-        <div className="border-hairline/70 rounded-2xl border border-dashed px-8 py-14 text-center">
+        {/* The page's closing surface, and the only lensed one besides the hero.
+            Both are single, large and unrepeated — the two conditions under
+            which refraction is worth what it costs. */}
+        <GlassPanel variant="lens" tier="lg" padding="none" grain className="px-8 py-14 text-center">
           <h2 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
             {tCta("title")}
           </h2>
           <p className="text-muted-foreground mx-auto mt-3 max-w-xl text-sm text-pretty sm:text-base">
             {tCta("description")}
           </p>
-          <Button size="pill" variant="glassProminent" className="mt-7" render={<Link href="/mentoring" />}>
+          <Button
+            size="pill"
+            variant="glassProminent"
+            className="mt-7"
+            render={<Link href="/mentoring" />}
+          >
             {tCta("action")}
           </Button>
-        </div>
+        </GlassPanel>
       </Section>
     </>
   );

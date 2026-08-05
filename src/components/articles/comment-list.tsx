@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
+import { GlassPanel } from "@/components/glass/glass-panel";
 import type { Locale } from "@/i18n/routing";
 import { connectDB } from "@/lib/db";
 import { Article, Comment } from "@/lib/models";
@@ -34,9 +35,16 @@ export async function CommentList({
   }
 
   return (
-    <ul className="divide-hairline/60 divide-y">
+    <ul className="space-y-3">
       {docs.map((comment) => (
-        <li key={String(comment._id)} className="flex gap-3 py-5 first:pt-0">
+        <GlassPanel
+          key={String(comment._id)}
+          as="li"
+          variant="glass"
+          tier="card"
+          padding="sm"
+          className="flex gap-3"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element -- gravatar is
               an external avatar service; next/image would need it allowlisted
               for zero benefit at 40px. */}
@@ -67,7 +75,7 @@ export async function CommentList({
               {String(comment.body)}
             </p>
           </div>
-        </li>
+        </GlassPanel>
       ))}
     </ul>
   );

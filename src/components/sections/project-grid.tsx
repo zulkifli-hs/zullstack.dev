@@ -22,14 +22,16 @@ export function ProjectGrid({
   return (
     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {shown.map((project) => (
-        // `flat` not `glass`: a grid of backdrop-filtered cards is exactly the
-        // pattern that tanks frame rate on mid-range devices.
         <GlassPanel
           key={project.id}
-          variant="flat" tier="md"
+          variant="glass"
+          tier="card"
           padding="none"
           className="group flex flex-col overflow-hidden"
         >
+          {/* The cover is a child, so it paints *on top of* the glass rather
+              than through it — the card reads as a photo above a frosted body,
+              which is the shape Apple uses for media cards. */}
           {project.coverImage?.url && (
             <div className="border-hairline/60 relative aspect-16/9 border-b">
               <Image

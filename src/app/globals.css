@@ -180,6 +180,16 @@
   --glass-base: oklch(1 0 0);
   --glass-tint-base: 58%;
 
+  /* Card tint, as a factor on the base — and genuinely theme-dependent, which
+     is why it lives here and not in the tier.
+     The tint exists to guarantee legibility over an unknown backdrop, and how
+     much it has to do differs by theme. Dark mode paints light text over a dark
+     tint, so the tint carries most of the contrast. Light mode paints dark text
+     over a *white* tint on an already-light backdrop, where extra opacity buys
+     almost no contrast and costs all of the transparency — at 58% the card is
+     simply a white box. Both values land the card near 46% alpha. */
+  --glass-tint-card: 0.8;
+
   /* Rim, bevel and sheen all derive from one colour + per-part alphas, so a
      high-contrast or forced-colors mode only has to swap the colour. */
   --glass-rim-color: oklch(1 0 0);
@@ -246,6 +256,7 @@
      scalars are theme-independent by design. */
   --glass-base: var(--color-ink-900);
   --glass-tint-base: 44%;
+  --glass-tint-card: 1.05;
 
   --glass-rim-a: 0.28;
   --glass-rim-mid-a: 0.08;
@@ -359,6 +370,25 @@
   --surface-contain: none;
 }
 
+/* Content cards.
+   Sits between `md` and `lg` in blur, but deliberately *above* both in tint.
+   The tier scale otherwise moves tint inversely to size, and a card breaks that
+   rule for one reason: it is the only surface on the site that carries running
+   body copy. An overlay holds labels for two seconds; a card holds a paragraph
+   someone actually reads, and 400-weight text is where glass fails first. */
+@utility surface-card {
+  --surface-radius: var(--radius-xl);
+  --tier-blur: 1.4;
+  --tier-tint: var(--glass-tint-card, 1);
+  --tier-rim: 1;
+  --tier-shadow-y: 10px;
+  --tier-shadow-blur: 30px;
+  --tier-shadow-spread: -8px;
+  --tier-glow: 22px;
+  --tier-lens: url("#zl-lens-card");
+  /* Unlike `md`, nothing escapes a card, so it keeps `contain: paint`. */
+}
+
 @utility surface-lg {
   --surface-radius: var(--radius-2xl);
   --tier-blur: 1.8;
@@ -394,7 +424,10 @@
   /* Lifting drops the tint — that is what "becomes glass" actually looks like. */
   --glass-tint-alpha: clamp(
     var(--glass-tint-min),
-    calc(var(--glass-tint-base) * var(--tier-tint, 1) * (1 - 0.2 * var(--lift))),
+    calc(
+      var(--glass-tint-base) * var(--tier-tint, 1) * var(--nested-tint, 1) *
+        (1 - 0.2 * var(--lift))
+    ),
     100%
   );
   --glass-rim-mul: calc(var(--tier-rim, 1) * (1 + 0.5 * var(--lift)));
@@ -678,8 +711,14 @@
 [data-surface="lens"] [data-surface="glass"],
 [data-surface="lens"] [data-surface="lens"] {
   --glass-fx-off: initial;
-  /* Compensate for the lost blur so the nested surface stays readable. */
-  --tier-tint: 1.35;
+  /* Compensate for the lost blur so the nested surface stays readable.
+     This is its OWN token, not `--tier-tint`. The guard's specificity (0,2,0)
+     beats any utility class, so writing `--tier-tint` here would silently
+     overrule a variant that sets its own — a `glassProminent` button dropped
+     inside a card would come out *less* prominent than outside it. Multiplying
+     a separate factor composes instead of clobbering: the prominent button ends
+     up fully opaque, which is what a primary action inside glass should be. */
+  --nested-tint: 1.35;
 }
 
 /* ── Degradation ─────────────────────────────────────────────────────────────

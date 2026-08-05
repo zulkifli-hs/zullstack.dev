@@ -20,6 +20,8 @@ const glassPanel = cva("relative", {
       xs: "surface-xs",
       sm: "surface-sm",
       md: "surface-md",
+      /** Content cards — same radius as `md`, denser tint for body copy. */
+      card: "surface-card",
       lg: "surface-lg",
     },
     padding: {
@@ -81,13 +83,28 @@ export function GlassPanel({
       className={cn(glassPanel({ variant, tier, padding }), className)}
       style={{ "--surface-pad": PAD[padding ?? "md"], ...style } as CSSProperties}
     >
+      {/*
+        Sheen and grain sit at z-index -1, not above the content.
+
+        The obvious construction — layers at z-1/z-2 and the content lifted into
+        a `z-3` wrapper — was what this did, and it quietly broke every panel
+        that carries a layout class: `flex`/`grid` on the panel would apply to
+        that single wrapper instead of to the children, so `<GlassPanel
+        className="flex">` had exactly one flex item.
+
+        Negative z-index gets the same paint order for free. Within this
+        element's stacking context (`isolation: isolate`), negative-z descendants
+        paint after the element's own background but *before* in-flow content —
+        so the highlight lies on the material and the text stays above it, with
+        the children as real children of the panel.
+      */}
       {interactive ? (
         <SpecularLayer />
       ) : (
         <span
           aria-hidden
           data-sheen
-          className="glass-sheen pointer-events-none absolute inset-0 z-1 rounded-[inherit]"
+          className="glass-sheen pointer-events-none absolute inset-0 -z-1 rounded-[inherit]"
         />
       )}
 
@@ -95,11 +112,11 @@ export function GlassPanel({
         <span
           aria-hidden
           data-grain
-          className="glass-grain pointer-events-none absolute inset-0 z-2 rounded-[inherit]"
+          className="glass-grain pointer-events-none absolute inset-0 -z-1 rounded-[inherit]"
         />
       )}
 
-      <div className="relative z-3">{children}</div>
+      {children}
     </Tag>
   );
 }
