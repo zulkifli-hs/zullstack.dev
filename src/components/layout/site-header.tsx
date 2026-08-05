@@ -6,6 +6,7 @@ import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { TransparencyToggle } from "@/components/layout/transparency-toggle";
+import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { HEADER_NAV } from "@/lib/navigation";
 
@@ -17,16 +18,22 @@ export async function SiteHeader() {
       {/*
         Apple's scroll edge effect: the blurred strip fades out downward via a
         mask instead of ending on a hard line, which is what keeps a sticky
-        header legible over arbitrary content. Highest legibility-per-byte in
-        the design system, and it works in every browser.
+        header legible over arbitrary content.
 
         The blur lives on this absolutely-positioned layer rather than on the
         <header> itself so the nav content is not inside the filtered element —
         text on a backdrop-filtered surface renders noticeably softer.
+
+        Previously this was a hand-rolled `backdrop-blur-xl backdrop-saturate-150`
+        that ignored the glass tokens entirely, which meant the site's own
+        transparency toggle did nothing to the header. Going through `glass`
+        fixes that and picks up all seven degradation modes for free. Radius and
+        shadow are stripped because a full-bleed bar has neither.
       */}
       <div
         aria-hidden
-        className="scroll-edge bg-background/55 pointer-events-none absolute inset-0 backdrop-blur-xl backdrop-saturate-150"
+        data-surface="glass"
+        className="glass surface-md scroll-edge pointer-events-none absolute inset-0 rounded-none border-0 shadow-none"
       />
       <div className="border-hairline/60 relative border-b">
         <nav
@@ -41,12 +48,14 @@ export async function SiteHeader() {
           <ul className="ml-auto hidden items-center gap-1 lg:flex">
             {HEADER_NAV.map(({ href, key }) => (
               <li key={href}>
-                <Link
-                  href={href}
-                  className="text-muted-foreground hover:text-foreground hover:bg-secondary/60 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="text-muted-foreground hover:text-foreground"
+                  render={<Link href={href} />}
                 >
                   {t(key)}
-                </Link>
+                </Button>
               </li>
             ))}
           </ul>
