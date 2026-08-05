@@ -1,73 +1,71 @@
-export const LENS_FILTER_ID = "zl-lens";
+import { LENS_MAPS, type LensTier } from "@/lib/glass/lens-maps.generated";
+
+export const lensFilterId = (tier: LensTier) => `zl-lens-${tier}`;
 
 /**
- * Edge-concentrated refraction for `backdrop-filter`.
+ * The SVG filters that turn glass from a blur into a lens.
  *
- * Real glass is a lens, not a scatter: it is optically flat in the middle and
- * steeply curved at the rim (a meniscus), so displacement should be ~0 at the
- * centre and rise sharply at the edges. That is what this map encodes.
+ * Each filter is a four-primitive chain:
  *
- * `feDisplacementMap` reads x-shift from R and y-shift from G, with 128 meaning
- * "no shift". The map is built by drawing a red horizontal ramp, then screening
- * a green vertical ramp over it — screen leaves each channel untouched by the
- * other (r,0,0) + (0,g,0) = (r,g,0) — which gives both axes in one image.
- * The flat 128 plateau between 22% and 78% is the optically flat centre.
+ *   feImage           the displacement map
+ *   feDisplacementMap bend the backdrop — R drives x, G drives y, 128 = no shift
+ *   feImage           the specular map (rim light)
+ *   feBlend screen    add the highlight on top of the refracted backdrop
  *
- * CHROMIUM ONLY. `backdrop-filter: url()` is unimplemented in Safari
- * (WebKit bug 245510, patches proposed but unmerged) and Firefox can fail to
- * paint the element entirely rather than ignoring the filter — hence the
- * `@supports` gate on `.glass-lens` rather than applying this unconditionally.
+ * The filter region is expanded by `pad` on every side. Edge refraction samples
+ * the backdrop from *outside* the element, and without the padding those samples
+ * fall outside the region and return transparent black — a dark fringe exactly
+ * where the bend should be strongest.
+ *
+ * CHROMIUM ONLY. Safari has never shipped `backdrop-filter: url()`
+ * (WebKit 245510) and Firefox can satisfy the `@supports` test then fail to
+ * paint, which is why `.glass-lens` carries a Gecko-only negative probe.
  * Everyone else gets blur + rim + sheen, which still reads as premium.
  *
- * Rendered once per document. Each additional filter instance reserves its own
- * GPU and compositing resources, so this is deliberately a shared singleton.
+ * Rendered once per document; each filter instance reserves its own GPU and
+ * compositing resources, so only the tiers actually used should be mounted.
  */
-export function LensFilter() {
-  const displacementMap = [
-    `<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'>`,
-    `<defs>`,
-    `<linearGradient id='x' x1='0' y1='0' x2='1' y2='0'>`,
-    `<stop offset='0' stop-color='rgb(0,0,0)'/>`,
-    `<stop offset='0.22' stop-color='rgb(128,0,0)'/>`,
-    `<stop offset='0.78' stop-color='rgb(128,0,0)'/>`,
-    `<stop offset='1' stop-color='rgb(255,0,0)'/>`,
-    `</linearGradient>`,
-    `<linearGradient id='y' x1='0' y1='0' x2='0' y2='1'>`,
-    `<stop offset='0' stop-color='rgb(0,0,0)'/>`,
-    `<stop offset='0.22' stop-color='rgb(0,128,0)'/>`,
-    `<stop offset='0.78' stop-color='rgb(0,128,0)'/>`,
-    `<stop offset='1' stop-color='rgb(0,255,0)'/>`,
-    `</linearGradient>`,
-    `</defs>`,
-    `<rect width='100' height='100' fill='url(%23x)'/>`,
-    `<rect width='100' height='100' fill='url(%23y)' style='mix-blend-mode:screen'/>`,
-    `</svg>`,
-  ].join("");
-
-  const href = `data:image/svg+xml,${displacementMap.replace(/#/g, "%23").replace(/"/g, "'")}`;
+export function LensFilter({ tiers }: { tiers?: LensTier[] }) {
+  const ids = tiers ?? (Object.keys(LENS_MAPS) as LensTier[]);
 
   return (
-    <svg aria-hidden width="0" height="0" className="absolute" style={{ position: "absolute" }}>
+    <svg aria-hidden width="0" height="0" style={{ position: "absolute" }}>
       <defs>
-        <filter
-          id={LENS_FILTER_ID}
-          // sRGB rather than the linearRGB default, so displacement magnitudes
-          // match the values authored above instead of being gamma-shifted.
-          colorInterpolationFilters="sRGB"
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-        >
-          <feImage href={href} preserveAspectRatio="none" result="map" />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="map"
-            scale="42"
-            xChannelSelector="R"
-            yChannelSelector="G"
-          />
-        </filter>
+        {ids.map((tier) => {
+          const map = LENS_MAPS[tier];
+          // Region expressed as a percentage of the element box, so the padding
+          // survives the element being a different size than the map.
+          const inner = { w: map.width - map.pad * 2, h: map.height - map.pad * 2 };
+          const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(4)}%`;
+
+          return (
+            <filter
+              key={tier}
+              id={lensFilterId(tier)}
+              colorInterpolationFilters="sRGB"
+              x={pct(-map.pad, inner.w)}
+              y={pct(-map.pad, inner.h)}
+              width={pct(map.width, inner.w)}
+              height={pct(map.height, inner.h)}
+            >
+              <feImage
+                href={map.displacement}
+                preserveAspectRatio="none"
+                result="displacementMap"
+              />
+              <feDisplacementMap
+                in="SourceGraphic"
+                in2="displacementMap"
+                scale={map.scale}
+                xChannelSelector="R"
+                yChannelSelector="G"
+                result="refracted"
+              />
+              <feImage href={map.specular} preserveAspectRatio="none" result="specular" />
+              <feBlend in="refracted" in2="specular" mode="screen" />
+            </filter>
+          );
+        })}
       </defs>
     </svg>
   );

@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Quote,
   Settings,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -28,6 +29,7 @@ export const ADMIN_NAV = [
   { href: "/admin/open-source", label: "Open Source", icon: GitBranch },
   { href: "/admin/snippets", label: "Snippets", icon: FlaskConical },
   { href: "/admin/config", label: "Site config", icon: Settings },
+  { href: "/admin/design", label: "Liquid Glass", icon: Sparkles },
 ] as const;
 
 export function AdminShell({ children, email }: { children: ReactNode; email?: string }) {

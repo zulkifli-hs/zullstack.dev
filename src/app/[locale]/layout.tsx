@@ -115,7 +115,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider>
           <ThemeProvider>
             <LabBackground />
-            <LensFilter />
+            <LensFilter tiers={["lg", "pill", "switch", "thumb", "md"]} />
             <SiteHeader />
             <div className="flex-1">{children}</div>
             <SiteFooter />

@@ -468,6 +468,23 @@
   }
 }
 
+/* Component-specific lens geometry.
+   A displacement map is authored at a size and shape; a pill is not a square
+   and a switch groove is not a dome, so those get their own maps rather than
+   stretching a generic one. */
+@utility lens-pill {
+  --tier-lens: url("#zl-lens-pill");
+}
+@utility lens-switch {
+  --tier-lens: url("#zl-lens-switch");
+}
+@utility lens-thumb {
+  --tier-lens: url("#zl-lens-thumb");
+}
+@utility lens-card {
+  --tier-lens: url("#zl-lens-card");
+}
+
 /* Content layer: same vocabulary, no backdrop-filter, higher tint floor.
    This is what cards and rows use — Apple is explicit that glass does not
    belong on the content layer. */

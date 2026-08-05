@@ -9,10 +9,11 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm build",
+    "check": "pnpm typecheck && pnpm lint && pnpm gen:lens --check && pnpm build",
     "create-admin": "tsx scripts/create-admin.ts",
     "cleanup-test-data": "tsx scripts/cleanup-test-data.ts",
-    "seed:dummy": "tsx scripts/seed-dummy.ts"
+    "seed:dummy": "tsx scripts/seed-dummy.ts",
+    "gen:lens": "tsx scripts/gen-lens-maps.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
