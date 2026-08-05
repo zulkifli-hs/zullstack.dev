@@ -1,0 +1,27 @@
+import { cn } from "@/lib/utils";
+
+/**
+ * The page substrate: a soft brand mesh gradient with a blueprint grid on top.
+ *
+ * Glass belongs over *this*, not over photography. Straight grid lines visibly
+ * bending at a panel's rim are what prove the surface is a lens rather than a
+ * blur — photos hide the effect entirely. It also happens to be the cheapest
+ * possible background, which matters because the frame budget is already going
+ * to backdrop-filter.
+ */
+export function LabBackground({ className }: { className?: string }) {
+  return (
+    <div aria-hidden className={cn("pointer-events-none fixed inset-0 -z-10 overflow-hidden", className)}>
+      {/* Mesh gradient — the only saturated colour on the page. The glass picks
+          it up as an adaptive tint for free, which is our approximation of
+          Apple's "light spills onto the surface". */}
+      <div className="absolute -top-1/4 left-1/2 h-[70vh] w-[80vw] -translate-x-1/2 rounded-full bg-brand-600/20 blur-[120px] dark:bg-brand-600/25" />
+      <div className="absolute top-1/3 -left-[10%] h-[50vh] w-[50vw] rounded-full bg-accent-400/10 blur-[130px] dark:bg-accent-500/10" />
+      <div className="absolute -right-[10%] bottom-0 h-[55vh] w-[55vw] rounded-full bg-brand-400/15 blur-[140px] dark:bg-brand-700/20" />
+
+      {/* Blueprint grid, masked so it dissolves toward the edges instead of
+          ending on a hard line. */}
+      <div className="lab-grid absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_35%,transparent_85%)]" />
+    </div>
+  );
+}

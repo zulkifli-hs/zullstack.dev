@@ -1,0 +1,158 @@
+{
+  "meta": {
+    "title": "Zullstack — Partner Lab Software Anda",
+    "titleTemplate": "{page} · Zullstack",
+    "description": "Zulkifli — fullstack engineer dan mentor coding. Enam tahun membangun sistem backend, frontend, mobile, dan DevOps, sekaligus mengajar orang-orang yang merawatnya."
+  },
+  "nav": {
+    "label": "Utama",
+    "home": "Beranda",
+    "projects": "Proyek",
+    "experience": "Pengalaman",
+    "mentoring": "Mentoring",
+    "articles": "Artikel",
+    "testimonials": "Testimoni",
+    "resources": "Sumber Belajar",
+    "openSource": "Open Source",
+    "playground": "Playground",
+    "menu": "Menu",
+    "close": "Tutup menu"
+  },
+  "hero": {
+    "eyebrow": "// zullstack.dev",
+    "greeting": "Halo, saya",
+    "name": "Zulkifli",
+    "tagline": "Partner Lab Software Anda",
+    "role": "Fullstack Engineer & Mentor Coding",
+    "description": "Saya membangun software dari hulu ke hilir — API yang tetap tangguh saat beban tinggi, antarmuka yang terasa dipikirkan matang, aplikasi mobile yang benar-benar rilis, dan pipeline yang membawa semuanya ke production. Lalu saya mengajar engineer yang akan melanjutkannya.",
+    "primaryCta": "Lihat karya saya",
+    "secondaryCta": "Mulai obrolan",
+    "scrollHint": "Gulir untuk menjelajah"
+  },
+  "about": {
+    "eyebrow": "// profil",
+    "title": "Engineer di balik lab ini",
+    "description": "Enam tahun di seluruh lapisan stack, dan keyakinan keras kepala bahwa menulis software yang baik dan mengajar yang baik adalah keahlian yang sama.",
+    "stackTitle": "Stack yang saya pakai",
+    "yearsLabel": "Tahun berkarya",
+    "projectsLabel": "Proyek diselesaikan",
+    "studentsLabel": "Engineer dimentori",
+    "stackLabel": "Teknologi"
+  },
+  "sections": {
+    "projects": {
+      "eyebrow": "// karya",
+      "title": "Proyek",
+      "description": "Sistem yang saya rancang, bangun, dan rilis — beserta batasan yang membentuknya.",
+      "cta": "Semua proyek",
+      "empty": "Belum ada proyek yang dipublikasikan."
+    },
+    "experience": {
+      "eyebrow": "// linimasa",
+      "title": "Pengalaman",
+      "description": "Tempat saya bekerja, apa yang saya pegang, dan pelajaran yang saya bawa.",
+      "cta": "Riwayat lengkap",
+      "empty": "Belum ada pengalaman yang dipublikasikan.",
+      "present": "Sekarang"
+    },
+    "mentoring": {
+      "eyebrow": "// sesi",
+      "title": "Mengajar & Mentoring",
+      "description": "Mentoring terstruktur berbasis proyek untuk engineer yang ingin melangkah lebih jauh dari sekadar tutorial.",
+      "cta": "Cara mentoring berjalan",
+      "empty": "Belum ada program mentoring yang dipublikasikan."
+    },
+    "articles": {
+      "eyebrow": "// catatan",
+      "title": "Artikel",
+      "description": "Catatan lab tentang arsitektur, tooling, dan hal-hal yang hanya muncul di production.",
+      "cta": "Semua artikel",
+      "empty": "Belum ada artikel yang dipublikasikan.",
+      "readingTime": "Baca {minutes} menit",
+      "published": "Terbit {date}"
+    },
+    "testimonials": {
+      "eyebrow": "// ulasan",
+      "title": "Testimoni",
+      "description": "Kata klien, murid, dan rekan kerja tentang pengalaman bekerja dengan saya.",
+      "cta": "Semua testimoni",
+      "empty": "Belum ada testimoni yang dipublikasikan."
+    },
+    "resources": {
+      "eyebrow": "// pustaka",
+      "title": "Sumber Belajar",
+      "description": "Materi belajar yang benar-benar saya rekomendasikan, disaring dari banyak yang tidak.",
+      "cta": "Jelajahi pustaka",
+      "empty": "Belum ada sumber belajar yang dipublikasikan."
+    },
+    "openSource": {
+      "eyebrow": "// kontribusi",
+      "title": "Open Source",
+      "description": "Proyek yang saya rawat, saya bantu kembangkan, atau saya kembalikan ke komunitas.",
+      "cta": "Semua kontribusi",
+      "empty": "Belum ada kontribusi yang dipublikasikan."
+    },
+    "playground": {
+      "eyebrow": "// sandbox",
+      "title": "Playground",
+      "description": "Snippet dan eksperimen langsung — kecil, bisa dijalankan, dan bebas Anda pakai.",
+      "cta": "Buka sandbox",
+      "empty": "Belum ada eksperimen yang dipublikasikan."
+    }
+  },
+  "cta": {
+    "title": "Mari bangun sesuatu yang layak dirawat",
+    "description": "Baik Anda butuh engineer yang sanggup memegang sebuah sistem dari hulu ke hilir, atau mentor untuk orang-orang yang akan melanjutkannya, saya ingin mendengarnya.",
+    "action": "Hubungi saya"
+  },
+  "common": {
+    "readMore": "Baca selengkapnya",
+    "viewAll": "Lihat semua",
+    "backTo": "Kembali ke {section}",
+    "backHome": "Kembali ke beranda",
+    "loading": "Memuat",
+    "notFoundTitle": "Tidak ada apa-apa di alamat ini",
+    "notFoundDescription": "Halaman yang Anda cari tidak ada, atau sudah dipindahkan.",
+    "errorTitle": "Ada yang bermasalah",
+    "errorDescription": "Terjadi kesalahan tak terduga. Biasanya mencoba lagi sudah cukup.",
+    "retry": "Coba lagi",
+    "liveDemo": "Demo langsung",
+    "sourceCode": "Kode sumber",
+    "visit": "Kunjungi"
+  },
+  "settings": {
+    "theme": "Tema",
+    "themeLight": "Terang",
+    "themeDark": "Gelap",
+    "themeSystem": "Sistem",
+    "language": "Bahasa",
+    "transparency": "Transparansi kaca",
+    "transparencyOn": "Kaca penuh",
+    "transparencyReduced": "Transparansi dikurangi",
+    "transparencyHint": "Kurangi ini jika panel transparan sulit dibaca."
+  },
+  "footer": {
+    "connect": "// terhubung",
+    "explore": "// jelajahi",
+    "tagline": "Partner Lab Software Anda",
+    "rights": "© {year} Zulkifli. Seluruh hak cipta dilindungi.",
+    "builtWith": "Dibangun dengan Next.js dan kopi berlebihan."
+  },
+  "comments": {
+    "title": "Komentar",
+    "name": "Nama",
+    "email": "Email",
+    "emailHint": "Tidak pernah ditampilkan atau dibagikan — hanya untuk avatar Anda.",
+    "comment": "Komentar",
+    "submit": "Kirim komentar",
+    "moderationNote": "Komentar ditinjau sebelum ditampilkan.",
+    "empty": "Belum ada komentar. Jadilah yang pertama.",
+    "like": "Sukai artikel ini",
+    "unlike": "Batalkan suka"
+  },
+  "search": {
+    "open": "Cari",
+    "placeholder": "Cari proyek dan artikel…",
+    "empty": "Tidak ada hasil untuk “{query}”."
+  }
+}

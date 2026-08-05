@@ -1,0 +1,158 @@
+{
+  "meta": {
+    "title": "Zullstack — Your Software Lab Partner",
+    "titleTemplate": "{page} · Zullstack",
+    "description": "Zulkifli — fullstack engineer and coding mentor. Six years building backend, frontend, mobile and DevOps systems, and teaching the people who maintain them."
+  },
+  "nav": {
+    "label": "Primary",
+    "home": "Home",
+    "projects": "Projects",
+    "experience": "Experience",
+    "mentoring": "Mentoring",
+    "articles": "Articles",
+    "testimonials": "Testimonials",
+    "resources": "Resources",
+    "openSource": "Open Source",
+    "playground": "Playground",
+    "menu": "Menu",
+    "close": "Close menu"
+  },
+  "hero": {
+    "eyebrow": "// zullstack.dev",
+    "greeting": "Hi, I'm",
+    "name": "Zulkifli",
+    "tagline": "Your Software Lab Partner",
+    "role": "Fullstack Engineer & Coding Mentor",
+    "description": "I build software end to end — APIs that hold up under load, interfaces that feel considered, mobile apps that ship, and the pipelines that carry all of it to production. Then I teach the engineers who take it from there.",
+    "primaryCta": "See what I've built",
+    "secondaryCta": "Start a conversation",
+    "scrollHint": "Scroll to explore"
+  },
+  "about": {
+    "eyebrow": "// profile",
+    "title": "The engineer behind the lab",
+    "description": "Six years across the whole stack, and a stubborn belief that good software and good teaching are the same skill.",
+    "stackTitle": "Working stack",
+    "yearsLabel": "Years shipping",
+    "projectsLabel": "Projects delivered",
+    "studentsLabel": "Engineers mentored",
+    "stackLabel": "Technologies"
+  },
+  "sections": {
+    "projects": {
+      "eyebrow": "// builds",
+      "title": "Projects",
+      "description": "Systems I designed, built and shipped — with the constraints that shaped them.",
+      "cta": "All projects",
+      "empty": "No projects published yet."
+    },
+    "experience": {
+      "eyebrow": "// timeline",
+      "title": "Experience",
+      "description": "Where I've worked, what I owned, and what it taught me.",
+      "cta": "Full history",
+      "empty": "No experience published yet.",
+      "present": "Present"
+    },
+    "mentoring": {
+      "eyebrow": "// sessions",
+      "title": "Teaching & Mentoring",
+      "description": "Structured, project-based mentoring for engineers who want to go deeper than tutorials.",
+      "cta": "How mentoring works",
+      "empty": "No mentoring tracks published yet."
+    },
+    "articles": {
+      "eyebrow": "// notes",
+      "title": "Articles",
+      "description": "Lab notes on architecture, tooling and the things that only show up in production.",
+      "cta": "All articles",
+      "empty": "No articles published yet.",
+      "readingTime": "{minutes} min read",
+      "published": "Published {date}"
+    },
+    "testimonials": {
+      "eyebrow": "// peer review",
+      "title": "Testimonials",
+      "description": "What clients, students and colleagues say about working with me.",
+      "cta": "All testimonials",
+      "empty": "No testimonials published yet."
+    },
+    "resources": {
+      "eyebrow": "// library",
+      "title": "Resources",
+      "description": "Learning material I actually recommend, filtered down from a lot that I don't.",
+      "cta": "Browse the library",
+      "empty": "No resources published yet."
+    },
+    "openSource": {
+      "eyebrow": "// contributions",
+      "title": "Open Source",
+      "description": "Projects I maintain, contribute to, or have shipped back to the commons.",
+      "cta": "All contributions",
+      "empty": "No contributions published yet."
+    },
+    "playground": {
+      "eyebrow": "// sandbox",
+      "title": "Playground",
+      "description": "Snippets and live experiments — small, runnable, and free to steal.",
+      "cta": "Open the sandbox",
+      "empty": "No experiments published yet."
+    }
+  },
+  "cta": {
+    "title": "Let's build something worth maintaining",
+    "description": "Whether you need an engineer who can own a system end to end, or a mentor for the people who will, I'd like to hear about it.",
+    "action": "Get in touch"
+  },
+  "common": {
+    "readMore": "Read more",
+    "viewAll": "View all",
+    "backTo": "Back to {section}",
+    "backHome": "Back to home",
+    "loading": "Loading",
+    "notFoundTitle": "Nothing at this address",
+    "notFoundDescription": "The page you're looking for doesn't exist, or it moved.",
+    "errorTitle": "Something broke",
+    "errorDescription": "An unexpected error occurred. Trying again usually helps.",
+    "retry": "Try again",
+    "liveDemo": "Live demo",
+    "sourceCode": "Source",
+    "visit": "Visit"
+  },
+  "settings": {
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "language": "Language",
+    "transparency": "Glass transparency",
+    "transparencyOn": "Full glass",
+    "transparencyReduced": "Reduced transparency",
+    "transparencyHint": "Turn this down if translucent panels are hard to read."
+  },
+  "footer": {
+    "connect": "// connect",
+    "explore": "// explore",
+    "tagline": "Your Software Lab Partner",
+    "rights": "© {year} Zulkifli. All rights reserved.",
+    "builtWith": "Built with Next.js and too much coffee."
+  },
+  "comments": {
+    "title": "Comments",
+    "name": "Name",
+    "email": "Email",
+    "emailHint": "Never shown or shared — only used for your avatar.",
+    "comment": "Comment",
+    "submit": "Post comment",
+    "moderationNote": "Comments are reviewed before they appear.",
+    "empty": "No comments yet. Be the first.",
+    "like": "Like this article",
+    "unlike": "Remove like"
+  },
+  "search": {
+    "open": "Search",
+    "placeholder": "Search projects and articles…",
+    "empty": "No results for “{query}”."
+  }
+}

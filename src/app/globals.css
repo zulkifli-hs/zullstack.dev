@@ -1,0 +1,457 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@plugin "@tailwindcss/typography";
+
+/* Theme strategy: `data-theme` attribute (next-themes `attribute="data-theme"`).
+   Attribute over class because it scales past light/dark without touching
+   component code, and it keeps the theme out of the className string. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ── Primitive scales ────────────────────────────────────────────────────────
+   Brand anchors, converted from the logo and gamut-fitted to sRGB:
+     #326afd -> oklch(0.578 0.227 264.4)  sits at 600, NOT 500
+     #92ec47 -> oklch(0.855 0.213 133.9)  sits at 250, NOT 500
+
+   Contrast facts that drive every semantic decision below (computed, not guessed):
+     brand-600 vs white ...... 4.55:1   brand-700 vs white ..... 6.30:1
+     brand-400 vs ink-950 .... 7.71:1   brand-600 vs ink-950 ... 4.27:1
+     accent-250 vs white ..... 1.47:1  <- unusable on light. dark-mode only.
+     accent-250 vs ink-950 ... 13.24:1  accent-700 vs white .... 5.74:1
+   ────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-brand-50: oklch(0.975 0.011 264.4);
+  --color-brand-100: oklch(0.945 0.026 264.4);
+  --color-brand-200: oklch(0.895 0.049 264.4);
+  --color-brand-300: oklch(0.83 0.084 264.4);
+  --color-brand-400: oklch(0.72 0.144 264.4);
+  --color-brand-500: oklch(0.628 0.199 264.4);
+  --color-brand-600: oklch(0.578 0.227 264.4); /* #326afd — the logo blue */
+  --color-brand-700: oklch(0.5 0.209 264.4);
+  --color-brand-800: oklch(0.425 0.177 264.4);
+  --color-brand-900: oklch(0.365 0.141 264.4);
+  --color-brand-950: oklch(0.255 0.102 264.4);
+
+  --color-accent-50: oklch(0.975 0.021 133.9);
+  --color-accent-100: oklch(0.945 0.047 133.9);
+  --color-accent-200: oklch(0.895 0.09 133.9);
+  --color-accent-250: oklch(0.855 0.213 133.9); /* #92ec47 — the logo green */
+  --color-accent-300: oklch(0.83 0.141 133.9);
+  --color-accent-400: oklch(0.72 0.192 133.9);
+  --color-accent-500: oklch(0.628 0.179 133.9);
+  --color-accent-600: oklch(0.578 0.165 133.9);
+  --color-accent-700: oklch(0.5 0.142 133.9);
+  --color-accent-800: oklch(0.425 0.12 133.9);
+  --color-accent-900: oklch(0.365 0.104 133.9);
+  --color-accent-950: oklch(0.255 0.072 133.9);
+
+  /* Neutrals hue-locked to 265 so glass tints read as harmonious, not muddy. */
+  --color-ink-50: oklch(0.972 0.004 265);
+  --color-ink-100: oklch(0.925 0.008 265);
+  --color-ink-200: oklch(0.855 0.013 265);
+  --color-ink-300: oklch(0.74 0.02 265);
+  --color-ink-400: oklch(0.63 0.022 265);
+  --color-ink-500: oklch(0.52 0.024 265);
+  --color-ink-600: oklch(0.425 0.022 265);
+  --color-ink-700: oklch(0.335 0.02 265);
+  --color-ink-800: oklch(0.253 0.017 265);
+  --color-ink-900: oklch(0.195 0.014 265);
+  --color-ink-950: oklch(0.155 0.012 265); /* #0b0d12 — dark page ground */
+}
+
+/* Wider gamut where available: sRGB clamps the green hard above L≈0.72. */
+@supports (color: color(display-p3 0 0 0)) {
+  @media (color-gamut: p3) {
+    :root {
+      --color-accent-250: oklch(0.855 0.245 133.9);
+    }
+  }
+}
+
+/* ── Semantic layer ──────────────────────────────────────────────────────── */
+@theme inline {
+  --font-heading: var(--font-sans);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Site-specific semantics. These exist so the green can never be misused:
+     `signal` resolves to a legible green per theme instead of raw #92ec47. */
+  --color-link: var(--link);
+  --color-signal: var(--signal);
+  --color-hairline: var(--hairline);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  color-scheme: light;
+
+  --background: var(--color-ink-50);
+  --foreground: var(--color-ink-950);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--color-ink-950);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--color-ink-950);
+  --primary: var(--color-brand-600);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: var(--color-ink-100);
+  --secondary-foreground: var(--color-ink-900);
+  --muted: var(--color-ink-100);
+  --muted-foreground: var(--color-ink-500);
+  --accent: var(--color-brand-50);
+  --accent-foreground: var(--color-brand-700);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: var(--color-ink-200);
+  --input: var(--color-ink-200);
+  --ring: var(--color-brand-600);
+  --radius: 0.75rem;
+
+  /* Text-safe interactive colors. brand-700 = 6.30:1 on white. */
+  --link: var(--color-brand-700);
+  /* accent-700 = 5.74:1 on white. Reads olive — that is the honest cost of
+     a 1.47:1 brand green, and it is preferable to illegible text. */
+  --signal: var(--color-accent-700);
+  --hairline: var(--color-ink-200);
+
+  /* Glass material. One place to dial the entire system.
+     Apple walked Liquid Glass transparency back twice (iOS 26 beta 3, then the
+     iOS 27 transparency slider). Both corrections moved toward opacity, so
+     these defaults sit deliberately conservative. */
+  --glass-blur: 14px; /* >16px stops reading as glass and starts reading as fog */
+  --glass-lens-blur: 5px; /* refracted surfaces need a crisp backdrop to bend */
+  --glass-sat: 180%; /* the knob that separates "Apple" from "cheap frosted div" */
+  --glass-bright: 1.06;
+  --glass-tint: color-mix(in oklab, oklch(1 0 0) 62%, transparent);
+  --glass-rim: oklch(1 0 0 / 0.85);
+  --glass-rim-mid: oklch(1 0 0 / 0.28);
+  --glass-shadow: oklch(0.22 0.02 265 / 0.14);
+  --glass-inner-top: oklch(1 0 0 / 0.7);
+  --glass-inner-bottom: oklch(1 0 0 / 0.18);
+  --glass-inner-glow: oklch(1 0 0 / 0.05);
+  --glass-sheen: oklch(1 0 0 / 0.45);
+  --glass-radius: 1.375rem;
+
+  --grid-color: oklch(0.578 0.227 264.4 / 0.07);
+  --grid-size: 24px;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: var(--color-ink-950);
+  --foreground: var(--color-ink-50);
+  --card: var(--color-ink-900);
+  --card-foreground: var(--color-ink-50);
+  --popover: var(--color-ink-900);
+  --popover-foreground: var(--color-ink-50);
+  --primary: var(--color-brand-600);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: var(--color-ink-800);
+  --secondary-foreground: var(--color-ink-50);
+  --muted: var(--color-ink-800);
+  --muted-foreground: var(--color-ink-300);
+  --accent: var(--color-brand-950);
+  --accent-foreground: var(--color-brand-300);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: var(--color-ink-800);
+  --input: var(--color-ink-800);
+  --ring: var(--color-brand-500);
+
+  --link: var(--color-brand-400); /* 7.71:1 on ink-950 */
+  --signal: var(--color-accent-250); /* 13.24:1 on ink-950 — the green finally works */
+  --hairline: var(--color-ink-800);
+
+  --glass-tint: color-mix(in oklab, var(--color-ink-900) 46%, transparent);
+  --glass-rim: oklch(1 0 0 / 0.28);
+  --glass-rim-mid: oklch(1 0 0 / 0.08);
+  --glass-shadow: oklch(0 0 0 / 0.45);
+  --glass-inner-top: oklch(1 0 0 / 0.4);
+  --glass-inner-bottom: oklch(1 0 0 / 0.12);
+  --glass-inner-glow: oklch(1 0 0 / 0.05);
+  --glass-sheen: oklch(1 0 0 / 0.22);
+
+  --grid-color: oklch(0.72 0.144 264.4 / 0.09);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Next 16 removed the automatic smooth scroll; this opts back in. */
+  html[data-scroll-behavior="smooth"] {
+    scroll-behavior: smooth;
+  }
+
+  /* Display type gets SF-like optical tightening. */
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.022em;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-brand-600) 28%, transparent);
+  }
+
+  /* Numbers in tables/metadata must not jitter as they animate. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ── Glass material ──────────────────────────────────────────────────────────
+   Real Liquid Glass is never one backdrop-filter. It is, at minimum:
+     1. a tint fill          2. a blurred+saturated backdrop
+     3. a bevel (inset shadows — this is what sells thickness, not the blur)
+     4. a gradient rim light 5. a specular sheen  6. grain
+   Layers 5 and 6 are pseudo-elements on <GlassPanel>, not baked in here, so
+   that a bare `glass` utility stays composable.
+   ────────────────────────────────────────────────────────────────────────── */
+@utility glass {
+  position: relative;
+  isolation: isolate;
+  /* Bounds the compositor's paint region. The single highest-impact perf lever
+     for backdrop-filter — without it the compositor reconsiders the whole page. */
+  contain: paint;
+  border-radius: var(--glass-radius);
+  border: 1px solid transparent;
+  /* Double-layer background-clip: the tint paints inside the padding box while
+     a gradient paints only in the border box. A flat 1px white border is the
+     tell that something is not Apple glass — real rim light varies around the
+     perimeter. */
+  background:
+    linear-gradient(var(--glass-tint), var(--glass-tint)) padding-box,
+    linear-gradient(
+        140deg,
+        var(--glass-rim) 0%,
+        var(--glass-rim-mid) 38%,
+        var(--glass-rim-mid) 58%,
+        var(--glass-rim) 100%
+      )
+      border-box;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat))
+    brightness(var(--glass-bright));
+  box-shadow:
+    inset 0 1px 1px 0 var(--glass-inner-top),
+    inset 0 -1px 1px 0 var(--glass-inner-bottom),
+    inset 0 0 24px 0 var(--glass-inner-glow),
+    0 8px 32px -8px var(--glass-shadow);
+}
+
+/* True refraction, layered on top of `glass`. Chromium only — the @supports
+   query is load-bearing, not defensive: Firefox may fail to paint the element
+   rather than ignoring an unsupported backdrop-filter URL reference.
+   Reserve this for 1-2 hero elements; it is the most expensive thing here. */
+@utility glass-lens {
+  @supports (backdrop-filter: url("#zl-lens")) {
+    /* Filter ORDER is the whole effect. Displacement must run before the blur:
+       bend the crisp grid lines first, then soften. Blurring first destroys the
+       straight edges the lens is supposed to visibly bend, and the result reads
+       as "a slightly brighter panel" rather than as glass.
+       Blur is also much lower here than on plain `glass` for the same reason. */
+    backdrop-filter: url("#zl-lens") blur(var(--glass-lens-blur)) saturate(var(--glass-sat))
+      brightness(var(--glass-bright));
+  }
+}
+
+/* Cheaper variant for repeated surfaces (cards in a grid). No backdrop-filter
+   at all — mobile handles only ~3-5 blur surfaces before frames drop. */
+@utility glass-flat {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--glass-radius);
+  border: 1px solid var(--hairline);
+  background: color-mix(in oklab, var(--card) 82%, transparent);
+  box-shadow: 0 1px 2px 0 var(--glass-shadow);
+}
+
+/* Specular highlight. Screen-blended so it adds light rather than washing the
+   tint out. `--mx`/`--my` default to the top-left rest position and are driven
+   by pointer position when <SpecularLayer> is used — the closest web analogue
+   to Apple's gyroscope-tracked rim light. */
+@utility glass-sheen {
+  --mx: 30%;
+  --my: 0%;
+  background:
+    radial-gradient(
+      220px circle at var(--mx) var(--my),
+      color-mix(in oklab, var(--glass-sheen) 62%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(140deg, var(--glass-sheen) 0%, transparent 55%);
+  mix-blend-mode: screen;
+}
+
+/* Fine grain. Blur gradients band badly on wide flat surfaces; a few percent of
+   noise hides it and reads as a real material rather than a CSS filter. */
+@utility glass-grain {
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Lab motifs ──────────────────────────────────────────────────────────── */
+
+/* Blueprint grid. Glass belongs over THIS, not over photography: straight grid
+   lines visibly bending at the panel rim are the proof the surface is a lens
+   rather than a blur. Photos hide the effect entirely. */
+@utility lab-grid {
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+}
+
+@utility lab-dots {
+  background-image: radial-gradient(circle, var(--grid-color) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+}
+
+/* Monospace metadata. Using mono for everything that is not prose is what makes
+   the site read as an instrument rather than a blog. */
+@utility lab-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Apple's scroll edge effect: the blur fades out downward instead of ending on
+   a hard line. Highest legibility-per-byte in the whole system. */
+@utility scroll-edge {
+  -webkit-mask-image: linear-gradient(to bottom, oklch(0 0 0) 0 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, oklch(0 0 0) 0 55%, transparent 100%);
+}
+
+/* ── Progressive enhancement + accessibility ─────────────────────────────────
+   Ordered least- to most-overriding. Every block below is a real degradation
+   path, not decoration: glass designs fail quietly and this is where.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Firefox and anything else without backdrop-filter gets an honest solid. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: color-mix(in oklab, var(--card) 88%, transparent);
+  }
+}
+
+/* Low-power / low-refresh devices: drop the blur entirely. */
+@media (update: slow) {
+  .glass {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: color-mix(in oklab, var(--card) 92%, transparent);
+  }
+}
+
+/* Apple's "Reduce Transparency" -> frostier, obscures more of what is behind.
+   NOTE: Safari does not implement this media query at all, which is why the
+   site also ships a manual toggle writing [data-transparency="reduced"]. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-blur: 0px;
+    --glass-tint: color-mix(in oklab, var(--card) 96%, transparent);
+  }
+}
+
+[data-transparency="reduced"] {
+  --glass-blur: 0px;
+  --glass-tint: color-mix(in oklab, var(--card) 96%, transparent);
+  --glass-sheen: transparent;
+}
+
+[data-transparency="reduced"] .glass {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Apple's "Increase Contrast" -> predominantly black or white with a
+   contrasting border. */
+@media (prefers-contrast: more) {
+  .glass {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--card);
+    border-color: var(--foreground);
+    box-shadow: none;
+  }
+}
+
+/* Apple's "Reduce Motion" -> disables elastic properties. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .glass,
+  .glass-flat {
+    background: Canvas;
+    border: 1px solid CanvasText;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+  }
+}
