@@ -40,7 +40,7 @@ export async function CommentList({
         <GlassPanel
           key={String(comment._id)}
           as="li"
-          variant="glass"
+          variant="lens"
           tier="card"
           padding="sm"
           className="flex gap-3"

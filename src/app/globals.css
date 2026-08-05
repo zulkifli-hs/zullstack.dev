@@ -222,8 +222,24 @@
      and still snapshots the backdrop every frame. */
   --glass-fx-off: ;
 
-  --grid-color: oklch(0.578 0.227 264.4 / 0.07);
-  --grid-size: 24px;
+  /* Live user controls, written on <html> by the glass panel (and by the
+     blocking script before first paint). Default 1 = untouched. These sit
+     UPSTREAM of the degradation clamps on purpose: a user preference can shape
+     the material, but `prefers-contrast: more` and friends still win, because
+     they clamp the result rather than the input. */
+  --glass-user-blur: 1;
+  --glass-user-tint: 1;
+  --glass-user-sat: 1;
+  --glass-user-bright: 1;
+  --glass-user-rim: 1;
+
+  /* The substrate is not decoration — it is the thing the lens bends, and the
+     only reason refraction is visible at all. At the previous 0.07 it did not
+     survive its own blur, so panels read as tinted boxes no matter how correct
+     the displacement map was. */
+  --grid-color: oklch(0.578 0.227 264.4 / 0.16);
+  --grid-size: 20px;
+  --grid-line: 1.5px;
 }
 
 [data-theme="dark"] {
@@ -267,7 +283,7 @@
   --glass-shadow-color: oklch(0 0 0);
   --glass-shadow-a: 0.45;
 
-  --grid-color: oklch(0.72 0.144 264.4 / 0.09);
+  --grid-color: oklch(0.72 0.144 264.4 / 0.2);
 }
 
 @layer base {
@@ -378,7 +394,15 @@
    someone actually reads, and 400-weight text is where glass fails first. */
 @utility surface-card {
   --surface-radius: var(--radius-xl);
-  --tier-blur: 1.4;
+  /* Low on purpose. On the lens path this multiplies `--glass-lens-blur-base`
+     (4px), so a card blurs by ~2.8px — and that number is set by what has to
+     survive it. A 1px grid line under 6px of blur spreads to ~12px at a twelfth
+     of its amplitude, i.e. gone, and a lens with nothing legible behind it to
+     bend is indistinguishable from a tinted box. Refraction carries the
+     material here; blur only softens what is left.
+     Browsers without `backdrop-filter: url()` fall back to 3px of plain blur,
+     where the tint is doing most of the work anyway. */
+  --tier-blur: 0.3;
   --tier-tint: var(--glass-tint-card, 1);
   --tier-rim: 1;
   --tier-shadow-y: 10px;
@@ -418,19 +442,27 @@
   border-radius: var(--surface-radius, var(--radius-xl));
   border: 1px solid transparent;
 
-  --glass-blur: min(calc(var(--glass-blur-base) * var(--tier-blur, 1)), var(--glass-blur-max));
-  --glass-sat: min(var(--glass-sat-base), var(--glass-sat-max));
+  --glass-blur: min(
+    calc(var(--glass-blur-base) * var(--tier-blur, 1) * var(--glass-user-blur, 1)),
+    var(--glass-blur-max)
+  );
+  --glass-sat: min(
+    calc(var(--glass-sat-base) * var(--glass-user-sat, 1)),
+    var(--glass-sat-max)
+  );
 
   /* Lifting drops the tint — that is what "becomes glass" actually looks like. */
   --glass-tint-alpha: clamp(
     var(--glass-tint-min),
     calc(
       var(--glass-tint-base) * var(--tier-tint, 1) * var(--nested-tint, 1) *
-        (1 - 0.2 * var(--lift))
+        var(--glass-user-tint, 1) * (1 - 0.2 * var(--lift))
     ),
     100%
   );
-  --glass-rim-mul: calc(var(--tier-rim, 1) * (1 + 0.5 * var(--lift)));
+  --glass-rim-mul: calc(
+    var(--tier-rim, 1) * var(--glass-user-rim, 1) * (1 + 0.5 * var(--lift))
+  );
 
   --glass-tint: color-mix(in oklab, var(--glass-base) var(--glass-tint-alpha), transparent);
   --glass-rim: color-mix(
@@ -467,7 +499,7 @@
       border-box;
 
   backdrop-filter: var(--glass-fx-off) blur(var(--glass-blur)) saturate(var(--glass-sat))
-    brightness(var(--glass-bright-base));
+    brightness(calc(var(--glass-bright-base) * var(--glass-user-bright, 1)));
 
   box-shadow:
     inset 0 1px 1px 0
@@ -496,8 +528,11 @@
 @utility glass-lens {
   @supports (backdrop-filter: url("#zl-lens")) and (not (-moz-appearance: none)) {
     backdrop-filter: var(--glass-fx-off) var(--tier-lens)
-      blur(calc(var(--glass-lens-blur-base) * var(--tier-blur, 1))) saturate(var(--glass-sat))
-      brightness(var(--glass-bright-base));
+      blur(
+        calc(var(--glass-lens-blur-base) * var(--tier-blur, 1) * var(--glass-user-blur, 1))
+      )
+      saturate(var(--glass-sat))
+      brightness(calc(var(--glass-bright-base) * var(--glass-user-bright, 1)));
   }
 }
 
@@ -516,6 +551,24 @@
 }
 @utility lens-card {
   --tier-lens: url("#zl-lens-card");
+}
+
+/* Cards drop refraction on phones, and keep plain glass.
+   Measured at 390x844: cards are full-width and tall, so five live surfaces
+   cover 68% of the viewport — well past the ~55% budget, and every one of those
+   pixels runs an SVG displacement pass at DPR 3. The lens is also least visible
+   here: a 25px bevel on a full-width card is a thin band at the extreme edge.
+   Navigation capsules keep theirs — they are small, they are the surfaces the
+   design is built around, and two of them cost almost nothing.
+
+   Restating the whole filter rather than clearing `--tier-lens`: setting that
+   token to `none` makes the declaration invalid at computed-value time, which
+   drops backdrop-filter entirely instead of falling back to blur. */
+@media (width < 40rem) {
+  [data-surface="lens"].surface-card {
+    backdrop-filter: var(--glass-fx-off) blur(var(--glass-blur)) saturate(var(--glass-sat))
+      brightness(calc(var(--glass-bright-base) * var(--glass-user-bright, 1)));
+  }
 }
 
 /* Content layer: same vocabulary, no backdrop-filter, higher tint floor.
@@ -667,10 +720,15 @@
 /* Blueprint grid. Glass belongs over THIS, not over photography: straight grid
    lines visibly bending at a panel rim are the proof the surface is a lens
    rather than a blur. Photos hide the effect entirely. */
+/* Line weight is a variable because it is load-bearing, not styling.
+   Blur destroys a thin line far faster than a thick one: a 1px line under 2.8px
+   of blur keeps roughly a seventh of its amplitude, which at these alphas lands
+   under 3/255 — invisible, and a lens with nothing legible to bend is a tinted
+   box. 1.5px survives, and reads no heavier because the alpha compensates. */
 @utility lab-grid {
   background-image:
-    linear-gradient(var(--grid-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    linear-gradient(var(--grid-color) var(--grid-line), transparent var(--grid-line)),
+    linear-gradient(90deg, var(--grid-color) var(--grid-line), transparent var(--grid-line));
   background-size: var(--grid-size) var(--grid-size);
 }
 

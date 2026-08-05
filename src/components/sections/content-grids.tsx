@@ -22,18 +22,19 @@ import type {
  * component renders both the home-page preview and the full listing page, and
  * the two can never drift apart visually.
  *
- * Every card here is real glass — `variant="glass"`, one backdrop-filter each.
- * That is a deliberate reversal of the earlier "flat content layer" rule, and it
- * is worth being honest about what it costs: a listing page renders 6–9 live
- * blur surfaces instead of one, and each is a separate backdrop snapshot for the
- * compositor.
+ * Every card here is a real lens — `variant="lens"`, so the rim actually bends
+ * the grid behind it rather than only blurring it. That is a deliberate
+ * reversal of the earlier "flat content layer" rule, and it is worth being
+ * honest about the cost: a listing page renders 6–9 live backdrop surfaces
+ * instead of one, each a separate compositor snapshot, each running an SVG
+ * displacement pass.
  *
  * Three things make it affordable:
  *   - the substrate is `LabBackground` — a fixed mesh gradient and a grid, the
  *     cheapest possible thing to re-sample, and static while the page scrolls;
  *   - cards keep `contain: paint`, so a card that scrolls out stops costing;
- *   - no card is lensed. Refraction is per-pixel SVG work and stays on the one
- *     or two hero surfaces per page.
+ *   - the maps are cached by *geometry*, so a three-column grid of equally
+ *     sized cards shares one generated map and one `<filter>`, not nine.
  *
  * The blur itself never animates on hover — see the `lift` utility.
  */
@@ -54,7 +55,7 @@ export function MentoringGrid({
   return (
     <div className="grid gap-5 md:grid-cols-3">
       {take(items, limit).map((track) => (
-        <GlassPanel key={track.id} variant="glass" tier="card">
+        <GlassPanel key={track.id} variant="lens" tier="card">
           <p className="lab-label text-signal">{track.level}</p>
           <h3 className="mt-3 text-lg font-semibold tracking-tight">{pick(track.track, locale)}</h3>
           <p className="text-muted-foreground mt-2 text-sm text-pretty">
@@ -105,7 +106,7 @@ export function ArticleList({
         <GlassPanel
           key={article.id}
           as="article"
-          variant="glass"
+          variant="lens"
           tier="card"
           padding="sm"
           className="group flex gap-5"
@@ -170,7 +171,7 @@ export function TestimonialGrid({
   return (
     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {take(items, limit).map((testimonial) => (
-        <GlassPanel key={testimonial.id} variant="glass" tier="card" className="flex flex-col">
+        <GlassPanel key={testimonial.id} variant="lens" tier="card" className="flex flex-col">
           <Quote aria-hidden className="text-signal size-5" />
           <blockquote className="mt-3 flex-1 text-sm text-pretty">
             {pick(testimonial.quote, locale)}
@@ -220,7 +221,7 @@ export function ResourceGrid({
   return (
     <div className="grid gap-5 md:grid-cols-2">
       {take(items, limit).map((resource) => (
-        <GlassPanel key={resource.id} variant="glass" tier="card" className="group relative">
+        <GlassPanel key={resource.id} variant="lens" tier="card" className="group relative">
           <div className="flex items-center gap-2">
             <p className="lab-label text-signal">{resource.type}</p>
             <span className="text-muted-foreground font-mono text-[0.6875rem]">
@@ -269,7 +270,7 @@ export function OpenSourceGrid({
   return (
     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {take(items, limit).map((repo) => (
-        <GlassPanel key={repo.id} variant="glass" tier="card" className="group relative">
+        <GlassPanel key={repo.id} variant="lens" tier="card" className="group relative">
           <div className="flex items-center gap-2">
             <GitBranch aria-hidden className="size-4" />
             <p className="truncate font-mono text-sm font-semibold">
@@ -316,7 +317,7 @@ export function SnippetShowcase({
   return (
     <div className="space-y-6">
       {take(items, limit).map((snippet) => (
-        <GlassPanel key={snippet.id} variant="glass" tier="card" padding="none" className="overflow-hidden">
+        <GlassPanel key={snippet.id} variant="lens" tier="card" padding="none" className="overflow-hidden">
           <div className="border-hairline/60 flex items-center gap-3 border-b px-5 py-3">
             <span aria-hidden className="flex gap-1.5">
               <span className="size-2.5 rounded-full bg-red-400/70" />

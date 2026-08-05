@@ -4,14 +4,18 @@ import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 
 import { LensFilter } from "@/components/glass/lens-filter";
+import { LensProvider } from "@/components/glass/lens-provider";
 import { LabBackground } from "@/components/lab/lab-background";
+import { ContactFab } from "@/components/layout/contact-fab";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { TabBar } from "@/components/layout/tab-bar";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { TransparencyScript } from "@/components/providers/transparency-script";
 import { resolveLocale } from "@/i18n/resolve-locale";
 import { routing } from "@/i18n/routing";
 import { ICONS } from "@/lib/brand";
+import { contactChannels } from "@/lib/contact";
 import { getSiteConfig } from "@/lib/queries";
 import { localeAlternates, SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -115,10 +119,20 @@ export default async function LocaleLayout({
         <NextIntlClientProvider>
           <ThemeProvider>
             <LabBackground />
-            <LensFilter tiers={["lg", "pill", "switch", "thumb", "md"]} />
+            {/* Static tiers: what every surface paints with until — and if —
+                its own runtime map arrives. `card` joins the list now that
+                content cards are lensed. */}
+            <LensFilter tiers={["lg", "card", "pill", "switch", "thumb", "md"]} />
+            <LensProvider />
             <SiteHeader />
             <div className="flex-1">{children}</div>
             <SiteFooter />
+            {/* Bottom navigation floats over the page, so the footer needs room
+                to clear it — otherwise the last row of links sits underneath
+                the capsule and cannot be tapped. */}
+            <div aria-hidden className="h-24 lg:hidden" />
+            <TabBar />
+            <ContactFab channels={contactChannels(config)} />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

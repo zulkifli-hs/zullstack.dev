@@ -154,5 +154,50 @@
     "open": "Search",
     "placeholder": "Search projects and articles…",
     "empty": "No results for “{query}”."
+  },
+  "contact": {
+    "title": "Get in touch",
+    "hint": "Pick whichever is easiest — I read both.",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "cta": "Get in touch"
+  },
+  "glass": {
+    "advanced": "Advanced glass controls",
+    "presets": "Presets",
+    "reset": "Reset to defaults",
+    "profile": "Bevel profile",
+    "profileHint": "The shape of the edge, and the whole character of the material. Convex is a dome; lip is convex outside and concave in the middle, so it reads as a groove.",
+    "light": "Light — instant",
+    "geometry": "Geometry — rebuilds the lens",
+    "geometryHint": "These are baked into the displacement map, so they apply when you release the slider.",
+    "preset": {
+      "default": "Default",
+      "clear": "Clear",
+      "frosted": "Frosted",
+      "reduced": "Reduced"
+    },
+    "profileName": {
+      "convex": "Convex",
+      "squircle": "Squircle",
+      "concave": "Concave",
+      "lip": "Lip"
+    },
+    "param": {
+      "blur": "Blur level",
+      "opacity": "Glass background opacity",
+      "saturation": "Saturation",
+      "brightness": "Brightness",
+      "rim": "Rim light",
+      "shadow": "Shadow",
+      "sheen": "Sheen",
+      "grain": "Grain",
+      "bevel": "Bezel width",
+      "thickness": "Glass thickness",
+      "ior": "Refraction index",
+      "specularAngle": "Specular angle",
+      "specularOpacity": "Specular opacity",
+      "specularSaturation": "Specular saturation"
+    }
   }
 }

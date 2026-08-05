@@ -3,6 +3,7 @@ import type { CSSProperties, ElementType, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { LensAuto } from "./lens-auto";
 import { SpecularLayer } from "./specular-layer";
 
 const glassPanel = cva("relative", {
@@ -98,6 +99,11 @@ export function GlassPanel({
         so the highlight lies on the material and the text stays above it, with
         the children as real children of the panel.
       */}
+      {/* Measures the panel and swaps in a lens generated at its real size.
+          Renders nothing; the static tier map covers first paint and the
+          no-worker case. */}
+      {variant === "lens" && <LensAuto />}
+
       {interactive ? (
         <SpecularLayer />
       ) : (

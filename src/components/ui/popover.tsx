@@ -24,15 +24,25 @@ export function PopoverContent({
   className,
   sideOffset = 6,
   align = "center",
+  // Anything anchored near the bottom of the viewport — the mobile contact
+  // button — has to open upward; Base UI flips automatically, but only if it is
+  // told which side to prefer.
+  side,
   children,
   ...props
 }: PopoverPrimitive.Popup.Props & {
   sideOffset?: number;
   align?: "start" | "center" | "end";
+  side?: "top" | "bottom" | "left" | "right";
 }) {
   return (
     <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Positioner sideOffset={sideOffset} align={align} className="z-50">
+      <PopoverPrimitive.Positioner
+        sideOffset={sideOffset}
+        align={align}
+        side={side}
+        className="z-50"
+      >
         <PopoverPrimitive.Popup
           data-slot="popover-content"
           data-surface="glass"

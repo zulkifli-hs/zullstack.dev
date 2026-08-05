@@ -20,8 +20,11 @@ export function LabBackground({ className }: { className?: string }) {
       <div className="absolute -right-[10%] bottom-0 h-[55vh] w-[55vw] rounded-full bg-brand-400/15 blur-[140px] dark:bg-brand-700/20" />
 
       {/* Blueprint grid, masked so it dissolves toward the edges instead of
-          ending on a hard line. */}
-      <div className="lab-grid absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_35%,transparent_85%)]" />
+          ending on a hard line.
+          The falloff starts late (60%) because the old 35% stop meant a card
+          sitting anywhere but the middle of the viewport had no grid left
+          behind it to refract — the lens was correct and had nothing to bend. */}
+      <div className="lab-grid absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_60%,transparent_100%)]" />
     </div>
   );
 }

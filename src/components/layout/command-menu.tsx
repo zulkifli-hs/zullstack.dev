@@ -107,10 +107,13 @@ export function CommandMenu() {
         size="sm"
         onClick={() => setOpen(true)}
         aria-label={t("open")}
-        className="text-muted-foreground hidden md:inline-flex"
+        className="text-muted-foreground"
       >
         <Search className="size-4" />
-        <kbd className="border-hairline rounded border px-1.5 py-0.5 font-mono text-[0.625rem]">
+        {/* The shortcut hint is desktop-only — it is not actionable on touch,
+            and it was previously the reason the whole button was hidden below
+            md, which left mobile with no search at all. */}
+        <kbd className="border-hairline hidden rounded border px-1.5 py-0.5 font-mono text-[0.625rem] md:inline">
           ⌘K
         </kbd>
       </Button>

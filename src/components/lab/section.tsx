@@ -79,7 +79,7 @@ export function Section({
 export function EmptyState({ message }: { message: string }) {
   return (
     <GlassPanel
-      variant="glass"
+      variant="lens"
       tier="card"
       padding="none"
       className="text-muted-foreground px-6 py-14 text-center text-sm"

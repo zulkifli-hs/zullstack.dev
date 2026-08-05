@@ -24,7 +24,7 @@ export function ProjectGrid({
       {shown.map((project) => (
         <GlassPanel
           key={project.id}
-          variant="glass"
+          variant="lens"
           tier="card"
           padding="none"
           className="group flex flex-col overflow-hidden"

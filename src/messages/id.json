@@ -154,5 +154,50 @@
     "open": "Cari",
     "placeholder": "Cari proyek dan artikel…",
     "empty": "Tidak ada hasil untuk “{query}”."
+  },
+  "contact": {
+    "title": "Hubungi saya",
+    "hint": "Pilih yang paling mudah — keduanya saya baca.",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "cta": "Hubungi saya"
+  },
+  "glass": {
+    "advanced": "Kontrol kaca lanjutan",
+    "presets": "Preset",
+    "reset": "Kembalikan ke bawaan",
+    "profile": "Profil bevel",
+    "profileHint": "Bentuk tepi kaca, dan inilah penentu karakter materialnya. Convex berupa kubah; lip cembung di luar dan cekung di tengah, sehingga terbaca sebagai alur.",
+    "light": "Cahaya — seketika",
+    "geometry": "Geometri — membangun ulang lensa",
+    "geometryHint": "Nilai ini dipanggang ke dalam peta displacement, jadi diterapkan saat slider dilepas.",
+    "preset": {
+      "default": "Bawaan",
+      "clear": "Bening",
+      "frosted": "Buram",
+      "reduced": "Redup"
+    },
+    "profileName": {
+      "convex": "Convex",
+      "squircle": "Squircle",
+      "concave": "Concave",
+      "lip": "Lip"
+    },
+    "param": {
+      "blur": "Tingkat blur",
+      "opacity": "Opasitas latar kaca",
+      "saturation": "Saturasi",
+      "brightness": "Kecerahan",
+      "rim": "Cahaya tepi",
+      "shadow": "Bayangan",
+      "sheen": "Kilau",
+      "grain": "Grain",
+      "bevel": "Lebar bezel",
+      "thickness": "Ketebalan kaca",
+      "ior": "Indeks refraksi",
+      "specularAngle": "Sudut specular",
+      "specularOpacity": "Opasitas specular",
+      "specularSaturation": "Saturasi specular"
+    }
   }
 }

@@ -84,7 +84,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
         </div>
       )}
 
-      <GlassPanel as="dl" variant="glass" tier="card" padding="sm" className="text-muted-foreground mt-8 grid grid-cols-2 gap-4 font-mono text-xs sm:grid-cols-3">
+      <GlassPanel as="dl" variant="lens" tier="card" padding="sm" className="text-muted-foreground mt-8 grid grid-cols-2 gap-4 font-mono text-xs sm:grid-cols-3">
         <div>
           <dt className="lab-label">year</dt>
           <dd className="tabular mt-1">{project.year}</dd>

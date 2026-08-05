@@ -10,6 +10,7 @@
  * raw key in the navigation.
  */
 export type NavKey =
+  | "home"
   | "projects"
   | "experience"
   | "mentoring"
@@ -50,6 +51,28 @@ export const PUBLIC_NAV = NAV_ITEMS.filter((item) => !item.experimental);
 export const HEADER_NAV = PUBLIC_NAV.filter(
   (item) => !["/testimonials", "/open-source"].includes(item.href),
 );
+
+/**
+ * The mobile bottom tab bar.
+ *
+ * Five entries, deliberately, and deliberately *only* destinations. Apple's
+ * guidance for the iOS 26 tab bar is explicit on both counts: three to five
+ * stable tabs, and tab bars are for navigating between sections rather than for
+ * actions or settings. So search, theme, language and the glass controls stay
+ * in the top bar where they already live, and no "Tools" tab exists.
+ *
+ * There is no "More" tab either. Testimonials and Open Source are reachable
+ * from their home-page sections — both already carry a "see all" link — and
+ * from the footer, which is a better place for supporting evidence than a
+ * catch-all tab.
+ */
+export const TAB_NAV: NavItem[] = [
+  { href: "/", key: "home" },
+  { href: "/projects", key: "projects" },
+  { href: "/experience", key: "experience" },
+  { href: "/mentoring", key: "mentoring" },
+  { href: "/articles", key: "articles" },
+];
 
 export const EXPERIMENTAL_PATHS = NAV_ITEMS.filter((item) => item.experimental).map(
   (item) => item.href,
