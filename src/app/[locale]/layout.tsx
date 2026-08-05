@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { TransparencyScript } from "@/components/providers/transparency-script";
 import { resolveLocale } from "@/i18n/resolve-locale";
 import { routing } from "@/i18n/routing";
+import { ICONS } from "@/lib/brand";
 import { getSiteConfig } from "@/lib/queries";
 import { localeAlternates, SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -49,6 +50,8 @@ export async function generateMetadata({
     metadataBase: new URL(SITE_URL),
     title: { default: t("title"), template: t("titleTemplate", { page: "%s" }) },
     description: t("description"),
+    icons: ICONS,
+    manifest: "/favicon/site.webmanifest",
     alternates: {
       canonical: `/${locale}`,
       languages: localeAlternates(""),

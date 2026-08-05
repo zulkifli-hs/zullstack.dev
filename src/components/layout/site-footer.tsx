@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
+import { Logo } from "@/components/brand/logo";
 import { Link } from "@/i18n/navigation";
 import { getSiteConfig } from "@/lib/queries";
 
@@ -23,10 +24,7 @@ export async function SiteFooter() {
     <footer className="border-hairline/60 relative mt-24 border-t">
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-2">
-          <p className="font-mono text-sm font-semibold">
-            zullstack<span className="text-signal">.dev</span>
-          </p>
-          <p className="text-muted-foreground mt-2 max-w-xs text-sm">{t("tagline")}</p>
+          <Logo className="h-9" />
           {config?.email && (
             <a
               href={`mailto:${config.email}`}

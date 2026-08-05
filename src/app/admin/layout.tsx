@@ -2,6 +2,7 @@ import { Geist, JetBrains_Mono } from "next/font/google";
 import type { Metadata } from "next";
 
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { ICONS } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 import "../globals.css";
@@ -23,6 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: { default: "Admin · Zullstack", template: "%s · Admin" },
+  icons: ICONS,
   // The CMS must never be indexed, regardless of what robots.txt says.
   robots: { index: false, follow: false, nocache: true },
 };

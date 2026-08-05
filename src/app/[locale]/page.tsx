@@ -6,7 +6,6 @@ import {
   ArticleList,
   MentoringGrid,
   OpenSourceGrid,
-  ResourceGrid,
   TestimonialGrid,
 } from "@/components/sections/content-grids";
 import { ExperienceTimeline } from "@/components/sections/experience-timeline";
@@ -20,7 +19,6 @@ import {
   getMentoringTracks,
   getOpenSource,
   getProjects,
-  getResources,
   getSiteConfig,
   getTestimonials,
 } from "@/lib/queries";
@@ -30,7 +28,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   // One round of parallel reads rather than eight sequential awaits — this page
   // touches every collection, so waterfalling would dominate build time.
-  const [config, projects, experience, mentoring, articles, testimonials, resources, openSource] =
+  const [config, projects, experience, mentoring, articles, testimonials, openSource] =
     await Promise.all([
       getSiteConfig(),
       getProjects({ limit: 3 }),
@@ -38,7 +36,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       getMentoringTracks({ limit: 3 }),
       getArticles({ limit: 3 }),
       getTestimonials({ limit: 3 }),
-      getResources({ limit: 4 }),
       getOpenSource({ limit: 3 }),
     ]);
 
@@ -135,23 +132,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <TestimonialGrid items={testimonials} locale={locale} />
           ) : (
             <EmptyState message={t("testimonials.empty")} />
-          )}
-        </div>
-      </Section>
-
-      <Section id="resources">
-        <SectionHeading
-          eyebrow={t("resources.eyebrow")}
-          title={t("resources.title")}
-          description={t("resources.description")}
-          href="/resources"
-          cta={t("resources.cta")}
-        />
-        <div className="mt-10">
-          {resources.length ? (
-            <ResourceGrid items={resources} locale={locale} />
-          ) : (
-            <EmptyState message={t("resources.empty")} />
           )}
         </div>
       </Section>

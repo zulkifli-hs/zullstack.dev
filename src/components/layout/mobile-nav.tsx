@@ -12,17 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "@/i18n/navigation";
-
-const NAV_ITEMS = [
-  { href: "/projects", key: "projects" },
-  { href: "/experience", key: "experience" },
-  { href: "/mentoring", key: "mentoring" },
-  { href: "/articles", key: "articles" },
-  { href: "/testimonials", key: "testimonials" },
-  { href: "/resources", key: "resources" },
-  { href: "/open-source", key: "openSource" },
-  { href: "/playground", key: "playground" },
-] as const;
+import { PUBLIC_NAV } from "@/lib/navigation";
 
 export function MobileNav() {
   const t = useTranslations("nav");
@@ -38,7 +28,7 @@ export function MobileNav() {
         }
       />
       <DropdownMenuContent align="end" className="w-48">
-        {NAV_ITEMS.map(({ href, key }) => (
+        {PUBLIC_NAV.map(({ href, key }) => (
           // `render` hands the menu item's behaviour to the Link, so keyboard
           // navigation and route prefetching both keep working.
           <DropdownMenuItem key={href} render={<Link href={href} />}>

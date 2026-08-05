@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { LogoMark } from "@/components/brand/logo-mark";
+import { Logo } from "@/components/brand/logo";
 import { SignOutButton } from "@/components/admin/sign-out-button";
 
 export const ADMIN_NAV = [
@@ -34,9 +34,9 @@ export function AdminShell({ children, email }: { children: ReactNode; email?: s
   return (
     <div className="flex min-h-dvh">
       <aside className="border-hairline bg-card/40 hidden w-60 shrink-0 flex-col border-r lg:flex">
-        <div className="border-hairline flex h-16 items-center gap-2.5 border-b px-5">
-          <LogoMark className="size-6" />
-          <span className="font-mono text-sm font-semibold">admin</span>
+        <div className="border-hairline flex h-16 items-center gap-3 border-b px-5">
+          <Logo className="h-7" />
+          <span className="lab-label text-muted-foreground">admin</span>
         </div>
 
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">

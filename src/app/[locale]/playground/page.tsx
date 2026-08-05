@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 
 import { ListingPage } from "@/components/lab/page-shell";
 import { resolveLocale } from "@/i18n/resolve-locale";
+import { NOINDEX } from "@/lib/navigation";
 import { SnippetShowcase } from "@/components/sections/content-grids";
 import { getSnippets } from "@/lib/queries";
 
@@ -13,7 +14,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const locale = await resolveLocale(params);
   const t = await getTranslations({ locale, namespace: "sections.playground" });
-  return { title: t("title"), description: t("description") };
+  // Hidden from public navigation while experimental, so it should not be
+  // indexed either — the route stays reachable for development.
+  return { title: t("title"), description: t("description"), ...NOINDEX };
 }
 
 export default async function Page({ params }: { params: Promise<{ locale: string }> }) {

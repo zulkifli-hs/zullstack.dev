@@ -1,4 +1,5 @@
 import { routing } from "@/i18n/routing";
+import { PUBLIC_NAV } from "@/lib/navigation";
 
 /** Canonical origin, without a trailing slash. */
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://zullstack.dev").replace(
@@ -7,17 +8,11 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://zullstack.
 );
 
 /** Routes that exist in both locales and belong in the sitemap. */
-export const STATIC_ROUTES = [
+export const STATIC_ROUTES: string[] = [
   "",
-  "/projects",
-  "/experience",
-  "/mentoring",
-  "/articles",
-  "/testimonials",
-  "/resources",
-  "/open-source",
-  "/playground",
-] as const;
+  // Experimental sections are excluded — see `PUBLIC_NAV` in lib/navigation.
+  ...PUBLIC_NAV.map((item) => item.href),
+];
 
 /**
  * `hreflang` alternates for a path.

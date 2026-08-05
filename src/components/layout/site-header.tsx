@@ -1,21 +1,13 @@
 import { getTranslations } from "next-intl/server";
 
-import { LogoMark } from "@/components/brand/logo-mark";
+import { Logo } from "@/components/brand/logo";
 import { CommandMenu } from "@/components/layout/command-menu";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { TransparencyToggle } from "@/components/layout/transparency-toggle";
 import { Link } from "@/i18n/navigation";
-
-export const NAV_ITEMS = [
-  { href: "/projects", key: "projects" },
-  { href: "/experience", key: "experience" },
-  { href: "/mentoring", key: "mentoring" },
-  { href: "/articles", key: "articles" },
-  { href: "/resources", key: "resources" },
-  { href: "/playground", key: "playground" },
-] as const;
+import { HEADER_NAV } from "@/lib/navigation";
 
 export async function SiteHeader() {
   const t = await getTranslations("nav");
@@ -41,15 +33,13 @@ export async function SiteHeader() {
           aria-label={t("label")}
           className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-6"
         >
-          <Link href="/" className="group flex items-center gap-2.5">
-            <LogoMark className="size-7" />
-            <span className="font-mono text-sm font-semibold tracking-tight">
-              zullstack<span className="text-signal">.dev</span>
-            </span>
+          <Link href="/" aria-label="Zullstack — home" className="shrink-0">
+            {/* Above the fold on every page, so it is an LCP candidate. */}
+            <Logo className="h-9" priority />
           </Link>
 
           <ul className="ml-auto hidden items-center gap-1 lg:flex">
-            {NAV_ITEMS.map(({ href, key }) => (
+            {HEADER_NAV.map(({ href, key }) => (
               <li key={href}>
                 <Link
                   href={href}

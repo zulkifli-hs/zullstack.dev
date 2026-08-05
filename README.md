@@ -14,17 +14,17 @@ Bilingual (EN/ID), multi-theme (light/dark/system), CMS-backed, with an Apple
 | UI | React 19.2, Tailwind CSS 4.3, shadcn/ui on Base UI |
 | Animation | `motion` 12 + React `<ViewTransition>` |
 | Database | MongoDB via Mongoose 9 |
-| Auth (Phase 2) | Better Auth 1.6 + its MongoDB adapter |
+| Auth | Better Auth 1.6 + its MongoDB adapter |
 | i18n | next-intl 4 (`en`, `id`) |
 | Theming | next-themes (`data-theme` attribute) |
-| Media (Phase 2) | Cloudinary (plain Node SDK, signed direct uploads) |
+| Media | Cloudinary (plain Node SDK, signed direct uploads) |
 
 ## Getting started
 
 ```bash
 pnpm install
 cp .env.example .env.local     # then fill in MONGODB_URI
-pnpm seed                      # placeholder content; --reset to wipe first
+pnpm seed                      # real content; --reset to replace existing
 pnpm dev
 ```
 
@@ -37,7 +37,10 @@ Open http://localhost:3000 — it redirects to `/en`.
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm lint` | ESLint (`next lint` was removed in Next 16) |
 | `pnpm check` | typecheck + lint + build |
-| `pnpm seed` | Seed placeholder content |
+| `pnpm seed` | Seed real content from the CV/portfolio |
+| `pnpm seed:dummy` | Add dummy articles/testimonials/comments for testing (`--remove` to delete) |
+| `pnpm create-admin` | Create the single CMS account |
+| `pnpm cleanup-test-data` | Remove artefacts left by automated verification |
 
 Without `MONGODB_URI` the site still builds and renders empty states, so a fresh
 clone works before any database exists.
@@ -135,8 +138,8 @@ preset is signed, not unsigned.
   uploads, TipTap editor.
 - **Phase 3 — complete.** Comments with a moderation queue, likes, ⌘K search,
   per-article OG images, RSS.
-- **Remaining**: evaluating `cacheComponents`, and a real Cloudinary upload test
-  (blocked on valid credentials).
+- **Remaining**: evaluating `cacheComponents`. Cloudinary uploads are verified
+  end to end (signed request → direct upload → MongoDB → `next/image`).
 
 ### Engagement notes
 
@@ -150,6 +153,45 @@ preset is signed, not unsigned.
 - Likes are keyed on a hashed httpOnly visitor cookie with a unique compound
   index, so a double-like is impossible at the database level. The article page
   stays static; the button resolves per-visitor state after mount.
+
+## Brand assets
+
+Logos live in [`public/brand/`](public/brand) and favicons in
+`public/favicon/`, wired through `ICONS` in
+[`src/lib/brand.ts`](src/lib/brand.ts).
+
+`<Logo>` renders the full horizontal lockup. The wordmark and tagline are part
+of the artwork, so **nothing should print "zullstack.dev" or the tagline beside
+it** — that would show the same words twice.
+
+Both colour variants are rendered and swapped with CSS (`dark:hidden` /
+`hidden dark:block`) rather than by reading the theme in JS: `next-themes` only
+knows the theme after hydration, so a JS swap would flash the wrong variant on
+first paint. That matters more than usual here — the background is transparent,
+so the wrong variant is *invisible*, not merely low-contrast.
+
+OG cards inline the same PNG as a data URI, because `next/og` renders in an
+isolated environment that cannot fetch from the site's own origin.
+
+## Hiding a section
+
+Sections still being designed are hidden from the public site without deleting
+them. Mark the item `experimental: true` in
+[`src/lib/navigation.ts`](src/lib/navigation.ts) and it disappears from the
+header, the mobile menu, the home page and the sitemap, and the page is served
+`noindex` — while the route itself stays reachable so it can be developed.
+
+Currently hidden: **Resources**, **Playground**.
+
+## Dummy data
+
+`pnpm seed:dummy` adds fabricated articles, testimonials, open-source entries
+and a pending/approved comment pair so comments, likes and moderation can be
+exercised. Every record carries `[DUMMY]` in a visible field, and
+`pnpm seed:dummy --remove` deletes them by that marker rather than by guessing —
+so it can never take real content with it.
+
+**Remove it before launch.**
 
 ## Troubleshooting
 

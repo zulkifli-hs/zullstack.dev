@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 
+import { BRAND, brandDataUri } from "@/lib/brand";
 import { routing, type Locale } from "@/i18n/routing";
 import { getArticleBySlug } from "@/lib/queries";
 import { pick } from "@/lib/utils";
@@ -28,7 +29,10 @@ export default async function Image({
     routing.locales.includes(rawLocale as Locale) ? rawLocale : routing.defaultLocale
   ) as Locale;
 
-  const article = await getArticleBySlug(slug);
+  const [article, lockup] = await Promise.all([
+    getArticleBySlug(slug),
+    brandDataUri(BRAND.lockupOnDark),
+  ]);
 
   const title = article ? pick(article.title, locale) : "zullstack.dev";
   const excerpt = article ? pick(article.excerpt, locale) : "Your Software Lab Partner";
@@ -52,26 +56,8 @@ export default async function Image({
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <svg width="44" height="38" viewBox="0 0 460 400" fill="none" strokeWidth="34" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M262 22 H330 M282 22 V96 L438 366 H42 L86 290" stroke="#326afd" />
-            <path d="M126 22 H228 L96 244 H258" stroke="#92ec47" />
-            <circle cx="310" cy="244" r="19" fill="#92ec47" />
-          </svg>
-          {/* Two children (a text node and a span), so Satori requires an
-              explicit display — it has no default block layout. */}
-          <div
-            style={{
-              display: "flex",
-              marginLeft: 14,
-              fontSize: 26,
-              fontWeight: 600,
-              letterSpacing: -0.5,
-            }}
-          >
-            zullstack<span style={{ color: "#92ec47" }}>.dev</span>
-          </div>
-        </div>
+        {/* Raw <img>: next/image does not exist inside an ImageResponse. */}
+        <img src={lockup} alt="" width={300} height={90} />
 
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div
