@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import type { CSSProperties, ElementType, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, CSSProperties, ElementType, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -35,12 +35,20 @@ const card = cva("relative", {
 /** Matches the `padding` variants, in units the concentric maths can subtract. */
 const PAD = { none: "0px", sm: "1rem", md: "1.5rem", lg: "2rem" } as const;
 
-type CardProps = VariantProps<typeof card> & {
+type CardOwnProps = VariantProps<typeof card> & {
   children: ReactNode;
   className?: string;
-  as?: ElementType;
   style?: CSSProperties;
 };
+
+/**
+ * Polymorphic props: whatever element `as` names, its own props come with it.
+ * Without this, `<Card as={Link} href={…}>` fails to typecheck — and casting
+ * around that would throw away the checking that makes `as` safe at all.
+ */
+type CardProps<T extends ElementType> = CardOwnProps & {
+  as?: T;
+} & Omit<ComponentPropsWithoutRef<T>, keyof CardOwnProps | "as">;
 
 /**
  * A content surface.
@@ -52,21 +60,25 @@ type CardProps = VariantProps<typeof card> & {
  * `data-surface` is load-bearing: it drives the no-glass-on-glass cascade guard
  * and the forced-colors reset in globals.css.
  */
-export function Card({
+export function Card<T extends ElementType = "div">({
   children,
   className,
   variant,
   tier,
   padding,
   interactive,
-  as: Tag = "div",
+  as,
   style,
-}: CardProps) {
+  ...rest
+}: CardProps<T>) {
+  const Tag = (as ?? "div") as ElementType;
+
   return (
     <Tag
       data-surface={variant ?? "flat"}
       className={cn(card({ variant, tier, padding, interactive }), className)}
       style={{ "--surface-pad": PAD[padding ?? "md"], ...style } as CSSProperties}
+      {...rest}
     >
       {children}
     </Tag>
