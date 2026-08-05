@@ -4,6 +4,7 @@ import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
 
+import { Button } from "@/components/ui/button";
 import { getLikeState, toggleLike } from "@/lib/actions/engagement";
 import { cn } from "@/lib/utils";
 
@@ -49,8 +50,9 @@ export function LikeButton({
   }));
 
   return (
-    <button
-      type="button"
+    <Button
+      size="pill"
+      variant="glass"
       disabled={isPending}
       aria-pressed={state.liked}
       aria-label={state.liked ? t("unlike") : t("like")}
@@ -63,13 +65,10 @@ export function LikeButton({
           setBase(next);
         })
       }
-      className={cn(
-        "border-hairline hover:bg-secondary/60 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-        state.liked && "border-signal/50 text-signal",
-      )}
+      className={cn(state.liked && "border-signal/50 text-signal")}
     >
       <Heart className={cn("size-4", state.liked && "fill-current")} />
       <span className="tabular">{state.count}</span>
-    </button>
+    </Button>
   );
 }

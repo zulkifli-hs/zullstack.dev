@@ -5,10 +5,10 @@ import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { submitComment, type CommentState } from "@/lib/actions/engagement";
-
-const inputClass =
-  "border-input bg-card/60 focus-visible:ring-ring w-full rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-2";
 
 export function CommentForm({ articleSlug }: { articleSlug: string }) {
   const t = useTranslations("comments");
@@ -35,22 +35,23 @@ export function CommentForm({ articleSlug }: { articleSlug: string }) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field name="authorName" label={t("name")} error={state.errors?.authorName}>
-          <input id="authorName" name="authorName" required maxLength={80} className={inputClass} />
+        <Field name="authorName" label={t("name")} required error={state.errors?.authorName}>
+          {(control) => <Input {...control} name="authorName" required maxLength={80} />}
         </Field>
 
         <Field
           name="authorEmail"
           label={t("email")}
           hint={t("emailHint")}
+          required
           error={state.errors?.authorEmail}
         >
-          <input id="authorEmail" name="authorEmail" type="email" required className={inputClass} />
+          {(control) => <Input {...control} name="authorEmail" type="email" required />}
         </Field>
       </div>
 
-      <Field name="body" label={t("comment")} error={state.errors?.body}>
-        <textarea id="body" name="body" required rows={4} maxLength={4000} className={`${inputClass} resize-y`} />
+      <Field name="body" label={t("comment")} required error={state.errors?.body}>
+        {(control) => <Textarea {...control} name="body" required rows={4} maxLength={4000} />}
       </Field>
 
       {state.message && (
@@ -66,34 +67,5 @@ export function CommentForm({ articleSlug }: { articleSlug: string }) {
 
       <p className="text-muted-foreground text-xs">{t("moderationNote")}</p>
     </form>
-  );
-}
-
-function Field({
-  name,
-  label,
-  hint,
-  error,
-  children,
-}: {
-  name: string;
-  label: string;
-  hint?: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <label htmlFor={name} className="lab-label text-muted-foreground block">
-        {label}
-      </label>
-      {children}
-      {hint && <p className="text-muted-foreground text-xs">{hint}</p>}
-      {error && (
-        <p role="alert" className="text-destructive text-xs">
-          {error}
-        </p>
-      )}
-    </div>
   );
 }

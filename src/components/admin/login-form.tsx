@@ -4,8 +4,10 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { signIn } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { signIn } from "@/lib/auth-client";
 
 export function LoginForm() {
   const router = useRouter();
@@ -37,40 +39,15 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="mt-8 space-y-4">
-      <div className="space-y-1.5">
-        <label htmlFor="email" className="lab-label text-muted-foreground block">
-          Email
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          autoComplete="username"
-          autoFocus
-          className="border-input bg-card focus-visible:ring-ring w-full rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-2"
-        />
-      </div>
+      <Field name="email" label="Email">
+        {(control) => <Input {...control} name="email" type="email" required autoComplete="username" autoFocus />}
+      </Field>
 
-      <div className="space-y-1.5">
-        <label htmlFor="password" className="lab-label text-muted-foreground block">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className="border-input bg-card focus-visible:ring-ring w-full rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-2"
-        />
-      </div>
-
-      {error && (
-        <p role="alert" className="text-destructive text-sm">
-          {error}
-        </p>
-      )}
+      <Field name="password" label="Password" error={error ?? undefined}>
+        {(control) => (
+          <Input {...control} name="password" type="password" required autoComplete="current-password" />
+        )}
+      </Field>
 
       <Button type="submit" disabled={pending} className="w-full">
         {pending && <Loader2 className="size-4 animate-spin" />}

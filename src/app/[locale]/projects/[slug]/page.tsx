@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 
 import { Tag } from "@/components/lab/section";
+import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/resolve-locale";
 import { routing } from "@/i18n/routing";
@@ -110,26 +111,24 @@ export default async function ProjectPage({ params }: { params: Params }) {
       {(project.repoUrl || project.liveUrl) && (
         <div className="mt-10 flex flex-wrap gap-3">
           {project.liveUrl && (
-            <a
-              href={project.liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-primary text-primary-foreground hover:bg-brand-700 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors"
+            <Button
+              size="pill"
+              variant="glassProminent"
+              render={<a href={project.liveUrl} target="_blank" rel="noopener noreferrer" />}
             >
               <ExternalLink className="size-4" />
               {tCommon("liveDemo")}
-            </a>
+            </Button>
           )}
           {project.repoUrl && (
-            <a
-              href={project.repoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="border-hairline hover:bg-secondary/60 inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-colors"
+            <Button
+              size="pill"
+              variant="glass"
+              render={<a href={project.repoUrl} target="_blank" rel="noopener noreferrer" />}
             >
               <GitBranch className="size-4" />
               {tCommon("sourceCode")}
-            </a>
+            </Button>
           )}
         </div>
       )}

@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -78,9 +79,5 @@ export function EmptyState({ message }: { message: string }) {
 
 /** Small mono tag used for tech stack, topics and categories. */
 export function Tag({ children }: { children: ReactNode }) {
-  return (
-    <span className="border-hairline/70 bg-secondary/40 text-muted-foreground rounded-md border px-2 py-0.5 font-mono text-[0.6875rem]">
-      {children}
-    </span>
-  );
+  return <Badge shape="tag">{children}</Badge>;
 }

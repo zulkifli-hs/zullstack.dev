@@ -43,7 +43,7 @@ export function MentoringGrid({
   return (
     <div className="grid gap-5 md:grid-cols-3">
       {take(items, limit).map((track) => (
-        <GlassPanel key={track.id} variant="flat">
+        <GlassPanel key={track.id} variant="flat" tier="md">
           <p className="lab-label text-signal">{track.level}</p>
           <h3 className="mt-3 text-lg font-semibold tracking-tight">{pick(track.track, locale)}</h3>
           <p className="text-muted-foreground mt-2 text-sm text-pretty">
@@ -152,7 +152,7 @@ export function TestimonialGrid({
   return (
     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {take(items, limit).map((testimonial) => (
-        <GlassPanel key={testimonial.id} variant="flat" className="flex flex-col">
+        <GlassPanel key={testimonial.id} variant="flat" tier="md" className="flex flex-col">
           <Quote aria-hidden className="text-signal size-5" />
           <blockquote className="mt-3 flex-1 text-sm text-pretty">
             {pick(testimonial.quote, locale)}
@@ -202,7 +202,7 @@ export function ResourceGrid({
   return (
     <div className="grid gap-5 md:grid-cols-2">
       {take(items, limit).map((resource) => (
-        <GlassPanel key={resource.id} variant="flat" className="group relative">
+        <GlassPanel key={resource.id} variant="flat" tier="md" className="group relative">
           <div className="flex items-center gap-2">
             <p className="lab-label text-signal">{resource.type}</p>
             <span className="text-muted-foreground font-mono text-[0.6875rem]">
@@ -251,7 +251,7 @@ export function OpenSourceGrid({
   return (
     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {take(items, limit).map((repo) => (
-        <GlassPanel key={repo.id} variant="flat" className="group relative">
+        <GlassPanel key={repo.id} variant="flat" tier="md" className="group relative">
           <div className="flex items-center gap-2">
             <GitBranch aria-hidden className="size-4" />
             <p className="truncate font-mono text-sm font-semibold">
@@ -298,7 +298,7 @@ export function SnippetShowcase({
   return (
     <div className="space-y-6">
       {take(items, limit).map((snippet) => (
-        <GlassPanel key={snippet.id} variant="flat" padding="none" className="overflow-hidden">
+        <GlassPanel key={snippet.id} variant="flat" tier="md" padding="none" className="overflow-hidden">
           <div className="border-hairline/60 flex items-center gap-3 border-b px-5 py-3">
             <span aria-hidden className="flex gap-1.5">
               <span className="size-2.5 rounded-full bg-red-400/70" />

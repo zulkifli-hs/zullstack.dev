@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { EntityRow } from "@/components/admin/entity-row";
+import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth-guard";
 import { isResourceKey, RESOURCE_KEYS, RESOURCES } from "@/lib/admin/resources";
 import { connectDB } from "@/lib/db";
@@ -42,13 +43,10 @@ export default async function ResourceListPage({ params }: { params: Params }) {
           </p>
         </div>
 
-        <Link
-          href={`/admin/${resource}/new`}
-          className="bg-primary text-primary-foreground hover:bg-brand-700 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-        >
+        <Button size="lg" render={<Link href={`/admin/${resource}/new`} />}>
           <Plus className="size-4" />
           New {def.singular.toLowerCase()}
-        </Link>
+        </Button>
       </div>
 
       {items.length === 0 ? (

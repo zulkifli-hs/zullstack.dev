@@ -32,7 +32,7 @@ export async function About({ config, locale }: { config: SiteConfig | null; loc
         </div>
 
         {stats.length > 0 && (
-          <GlassPanel variant="flat" className="h-fit">
+          <GlassPanel variant="flat" tier="md" className="h-fit">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-6">
               {stats.map((stat) => (
                 <div key={stat.key}>

@@ -3,6 +3,7 @@
 import { ImageIcon, Loader2, X } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { createUploadSignature } from "@/lib/actions/upload";
 
 type StoredImage = { url: string; publicId: string; width?: number; height?: number };
@@ -84,14 +85,18 @@ export function ImageField({
               and next/image would demand it be in remotePatterns first. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image.url} alt="" className="max-h-48 w-auto" />
-          <button
-            type="button"
+          {/* Was a hand-rolled `bg-background/80 backdrop-blur` — one of three
+              uncoordinated blurs that ignored the glass tokens and never
+              degraded. Now a real glass control. */}
+          <Button
+            variant="glass"
+            size="icon-sm"
             onClick={() => setImage(undefined)}
             aria-label="Remove image"
-            className="bg-background/80 absolute top-2 right-2 rounded-full p-1.5 backdrop-blur"
+            className="absolute top-2 right-2 [--surface-radius:9999px]"
           >
             <X className="size-4" />
-          </button>
+          </Button>
         </div>
       ) : (
         <label className="border-hairline hover:border-ring flex w-fit cursor-pointer items-center gap-2 rounded-lg border border-dashed px-4 py-3 text-sm transition-colors">

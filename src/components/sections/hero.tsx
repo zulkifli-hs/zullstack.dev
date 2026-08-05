@@ -2,6 +2,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { GlassPanel } from "@/components/glass/glass-panel";
+import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import { pick } from "@/lib/utils";
@@ -40,21 +41,15 @@ export async function Hero({ config, locale }: { config: SiteConfig | null; loca
       </p>
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
-        <Link
-          href="/projects"
-          className="bg-primary text-primary-foreground hover:bg-brand-700 group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors"
-        >
+        <Button size="pill" variant="glassProminent" render={<Link href="/projects" />}>
           {t("primaryCta")}
-          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-        </Link>
+          <ArrowRight className="size-4" />
+        </Button>
 
-        <Link
-          href="/mentoring"
-          className="border-hairline hover:bg-secondary/60 inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-colors"
-        >
+        <Button size="pill" variant="glass" render={<Link href="/mentoring" />}>
           <Sparkles className="text-signal size-4" />
           {t("secondaryCta")}
-        </Link>
+        </Button>
       </div>
     </section>
   );

@@ -6,6 +6,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { Bold, Code, Heading2, Heading3, Italic, Link2, List, ListOrdered, Quote } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
@@ -125,8 +126,9 @@ function Tool({
   const on = active ? editor?.isActive(active) : isActive;
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
+      size="icon-sm"
       title={label}
       aria-label={label}
       aria-pressed={Boolean(on)}
@@ -134,12 +136,9 @@ function Tool({
         if (onClick) return onClick();
         if (action) editor?.chain().focus()[action]().run();
       }}
-      className={cn(
-        "hover:bg-secondary rounded p-1.5 transition-colors",
-        on && "bg-secondary text-signal",
-      )}
+      className={cn(on && "bg-secondary text-signal")}
     >
       <Icon className="size-4" />
-    </button>
+    </Button>
   );
 }

@@ -7,12 +7,14 @@ import { useActionState } from "react";
 import { ImageField } from "@/components/admin/image-field";
 import { RichTextField } from "@/components/admin/rich-text-field";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
 import { saveEntity, type ActionState } from "@/lib/actions/content";
 import { LOCALIZED_TYPES, type Field } from "@/lib/admin/fields";
 import { cn } from "@/lib/utils";
-
-const inputClass =
-  "border-input bg-card focus-visible:ring-ring w-full rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-2";
 
 export function EntityForm({
   resource,
@@ -100,12 +102,14 @@ function FieldControl({
 
   return (
     <div className={cn("space-y-2", wide && "sm:col-span-2")}>
-      <label htmlFor={localized ? `${field.name}.en` : field.name} className="block">
-        <span className="lab-label text-muted-foreground">
-          {field.label}
-          {field.required && <span className="text-destructive ml-1">*</span>}
-        </span>
-      </label>
+      <Label htmlFor={localized ? `${field.name}.en` : field.name}>
+        {field.label}
+        {field.required && (
+          <span className="text-destructive ml-1" aria-hidden>
+            *
+          </span>
+        )}
+      </Label>
 
       {field.help && <p className="text-muted-foreground text-xs">{field.help}</p>}
 
@@ -153,52 +157,38 @@ function LocalizedInput({
   }
 
   if (field.type === "localized-text") {
-    return <input id={name} name={name} defaultValue={text} className={inputClass} />;
+    return <Input id={name} name={name} defaultValue={text} />;
   }
 
   return (
-    <textarea
-      id={name}
-      name={name}
-      defaultValue={text}
-      rows={4}
-      className={cn(inputClass, "resize-y")}
-    />
+    <Textarea id={name} name={name} defaultValue={text} rows={4} />
   );
 }
 
 function PlainInput({ field, value }: { field: Field; value: unknown }) {
-  const common = { id: field.name, name: field.name, className: inputClass };
+  const common = { id: field.name, name: field.name };
 
   switch (field.type) {
     case "boolean":
-      return (
-        <input
-          id={field.name}
-          name={field.name}
-          type="checkbox"
-          defaultChecked={Boolean(value)}
-          className="accent-primary size-4"
-        />
-      );
+      return <Checkbox id={field.name} name={field.name} defaultChecked={Boolean(value)} />;
 
     case "select":
       return (
-        <select {...common} defaultValue={String(value ?? field.options?.[0] ?? "")}>
+        <NativeSelect {...common} defaultValue={String(value ?? field.options?.[0] ?? "")}>
           {field.options?.map((option) => (
             <option key={option} value={option}>
               {option}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       );
 
     case "number":
-      return <input {...common} type="number" defaultValue={value == null ? "" : String(value)} />;
+      return <Input {...common} type="number" defaultValue={value == null ? "" : String(value)} />;
 
     case "date":
       return (
-        <input
+        <Input
           {...common}
           type="date"
           // <input type="date"> only accepts YYYY-MM-DD, never a full ISO string.
@@ -208,7 +198,7 @@ function PlainInput({ field, value }: { field: Field; value: unknown }) {
 
     case "tags":
       return (
-        <input
+        <Input
           {...common}
           defaultValue={Array.isArray(value) ? value.join(", ") : String(value ?? "")}
           placeholder="Comma separated"
@@ -216,21 +206,21 @@ function PlainInput({ field, value }: { field: Field; value: unknown }) {
       );
 
     case "textarea":
-      return <textarea {...common} rows={4} defaultValue={String(value ?? "")} />;
+      return <Textarea {...common} rows={4} defaultValue={String(value ?? "")} />;
 
     case "code":
       return (
-        <textarea
+        <Textarea
           {...common}
           rows={14}
           defaultValue={String(value ?? "")}
           spellCheck={false}
-          className={cn(inputClass, "resize-y font-mono text-xs")}
+          className="font-mono text-xs"
         />
       );
 
     default:
-      return <input {...common} type="text" defaultValue={String(value ?? "")} />;
+      return <Input {...common} type="text" defaultValue={String(value ?? "")} />;
   }
 }
 

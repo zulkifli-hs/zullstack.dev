@@ -11,6 +11,7 @@ import {
 import { ExperienceTimeline } from "@/components/sections/experience-timeline";
 import { Hero } from "@/components/sections/hero";
 import { ProjectGrid } from "@/components/sections/project-grid";
+import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/resolve-locale";
 import {
@@ -161,12 +162,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <p className="text-muted-foreground mx-auto mt-3 max-w-xl text-sm text-pretty sm:text-base">
             {tCta("description")}
           </p>
-          <Link
-            href="/mentoring"
-            className="bg-primary text-primary-foreground hover:bg-brand-700 mt-7 inline-flex rounded-full px-6 py-2.5 text-sm font-medium transition-colors"
-          >
+          <Button size="pill" variant="glassProminent" className="mt-7" render={<Link href="/mentoring" />}>
             {tCta("action")}
-          </Link>
+          </Button>
         </div>
       </Section>
     </>

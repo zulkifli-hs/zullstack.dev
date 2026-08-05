@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
+import { BadgeButton } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { deleteEntity, toggleStatus } from "@/lib/actions/content";
-import { cn } from "@/lib/utils";
 
 export function EntityRow({
   resource,
@@ -41,23 +42,19 @@ export function EntityRow({
         )}
       </div>
 
-      <button
-        type="button"
+      <BadgeButton
         disabled={pending}
+        tone={published ? "signal" : "neutral"}
         onClick={() => startTransition(() => toggleStatus(resource, id).then(() => router.refresh()))}
-        className={cn(
-          "lab-label shrink-0 rounded-full border px-2.5 py-1 transition-colors",
-          published
-            ? "border-signal/40 text-signal"
-            : "border-hairline text-muted-foreground hover:text-foreground",
-        )}
         aria-label={published ? "Unpublish" : "Publish"}
+        className="shrink-0"
       >
         {status}
-      </button>
+      </BadgeButton>
 
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon-sm"
         disabled={pending}
         onClick={() => {
           // A destructive action with no undo deserves a confirmation, and this
@@ -65,11 +62,11 @@ export function EntityRow({
           if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
           startTransition(() => deleteEntity(resource, id).then(() => router.refresh()));
         }}
-        className="text-muted-foreground hover:text-destructive shrink-0 transition-colors"
         aria-label={`Delete ${title}`}
+        className="hover:text-destructive shrink-0"
       >
         {pending ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-      </button>
+      </Button>
     </li>
   );
 }

@@ -26,7 +26,7 @@ export function ProjectGrid({
         // pattern that tanks frame rate on mid-range devices.
         <GlassPanel
           key={project.id}
-          variant="flat"
+          variant="flat" tier="md"
           padding="none"
           className="group flex flex-col overflow-hidden"
         >
