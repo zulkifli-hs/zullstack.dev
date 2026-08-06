@@ -238,8 +238,8 @@
      survive its own blur, so panels read as tinted boxes no matter how correct
      the displacement map was. */
   --grid-color: oklch(0.578 0.227 264.4 / 0.16);
-  --grid-size: 20px;
-  --grid-line: 1.5px;
+  --grid-size: 24px;
+  --grid-line: 1px;
 }
 
 [data-theme="dark"] {
@@ -730,6 +730,10 @@
     linear-gradient(var(--grid-color) var(--grid-line), transparent var(--grid-line)),
     linear-gradient(90deg, var(--grid-color) var(--grid-line), transparent var(--grid-line));
   background-size: var(--grid-size) var(--grid-size);
+  /* background-image:
+    linear-gradient(var(--grid-color) 0.5px, transparent 0.5px),
+    linear-gradient(90deg, var(--grid-color) 0.5px, transparent 0.5px);
+  background-size: 40px 40px; */
 }
 
 @utility lab-dots {

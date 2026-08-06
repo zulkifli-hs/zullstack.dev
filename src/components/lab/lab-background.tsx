@@ -24,7 +24,7 @@ export function LabBackground({ className }: { className?: string }) {
           The falloff starts late (60%) because the old 35% stop meant a card
           sitting anywhere but the middle of the viewport had no grid left
           behind it to refract — the lens was correct and had nothing to bend. */}
-      <div className="lab-grid absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_60%,transparent_100%)]" />
+      <div className="lab-grid absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_60%,transparent_100%)] opacity-20" />
     </div>
   );
 }

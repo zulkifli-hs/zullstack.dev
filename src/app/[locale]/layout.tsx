@@ -21,6 +21,7 @@ import { localeAlternates, SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 import "../globals.css";
+import { HeroBackground } from "@/components/sections/hero-background";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -118,6 +119,7 @@ export default async function LocaleLayout({
       <body className="flex min-h-dvh flex-col antialiased">
         <NextIntlClientProvider>
           <ThemeProvider>
+            <HeroBackground />
             <LabBackground />
             {/* Static tiers: what every surface paints with until — and if —
                 its own runtime map arrives. `card` joins the list now that
