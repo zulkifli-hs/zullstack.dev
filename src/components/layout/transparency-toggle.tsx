@@ -25,9 +25,9 @@ import { cn } from "@/lib/utils";
  */
 export function TransparencyToggle() {
   const t = useTranslations("settings");
-  const tGlass = useTranslations("glass");
+  // const tGlass = useTranslations("glass");
   const { mode, setMode } = useTransparency();
-  const [advanced, setAdvanced] = useState(false);
+  // const [advanced, setAdvanced] = useState(false);
   const reduced = mode === "reduced";
 
   return (
@@ -53,7 +53,7 @@ export function TransparencyToggle() {
         </div>
         <p className="text-muted-foreground mt-2 text-xs">{t("transparencyHint")}</p>
 
-        <div className="border-hairline/60 mt-4 border-t pt-3">
+        {/* <div className="border-hairline/60 mt-4 border-t pt-3">
           <button
             type="button"
             onClick={() => setAdvanced((open) => !open)}
@@ -70,12 +70,10 @@ export function TransparencyToggle() {
             />
             {tGlass("advanced")}
           </button>
-
-          {/* Mounted only when open: the controls subscribe to the lens registry
-              and read localStorage, and there is no reason to pay for that on
-              every page load for a panel most visitors never expand. */}
+        
           {advanced && <GlassControls />}
-        </div>
+        </div> */}
+        <GlassControls />
       </PopoverContent>
     </Popover>
   );

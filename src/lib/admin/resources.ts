@@ -5,16 +5,26 @@ import {
   Experience,
   MentoringTrack,
   OpenSource,
+  Partner,
   Project,
   Resource,
   Snippet,
   Testimonial,
 } from "@/lib/models";
+import {
+  LIFECYCLES,
+  LINK_ACCESS,
+  LINK_KINDS,
+  PARTNER_KINDS,
+  PARTNER_ROLES,
+  PLATFORMS,
+} from "@/lib/models/shared";
 
 import { ORDER_FIELD, STATUS_FIELD, type Field } from "./fields";
 
 export type ResourceKey =
   | "projects"
+  | "partners"
   | "experience"
   | "mentoring"
   | "articles"
@@ -33,10 +43,22 @@ type ResourceDef = {
   /** Extra columns shown in the list, beyond title and status. */
   listColumns?: { name: string; label: string }[];
   sort: Record<string, 1 | -1>;
+  /**
+   * Rows can be dragged to set `order`.
+   *
+   * Only for resources whose `sort` is actually driven by `order` — offering a
+   * drag handle on a list sorted by date would let the editor rearrange rows
+   * that snap straight back on reload.
+   */
+  reorderable?: boolean;
+  /**
+   * Boolean field promoted to a star toggle in the list, whose rows are pinned
+   * above everything else. Must be the leading key in `sort`.
+   */
+  favoriteField?: string;
   fields: Field[];
 };
 
-const CATEGORY = ["web", "mobile", "backend", "devops", "other"] as const;
 const LEVEL = ["beginner", "intermediate", "advanced"] as const;
 
 export const RESOURCES: Record<ResourceKey, ResourceDef> = {
@@ -47,22 +69,89 @@ export const RESOURCES: Record<ResourceKey, ResourceDef> = {
     titleField: "title",
     listColumns: [
       { name: "year", label: "Year" },
-      { name: "category", label: "Category" },
+      { name: "lifecycle", label: "Lifecycle" },
     ],
     sort: { featured: -1, order: 1, year: -1 },
+    reorderable: true,
+    favoriteField: "featured",
     fields: [
-      { name: "slug", label: "Slug", type: "text", required: true, help: "URL segment. Changing this breaks existing links." },
-      { name: "title", label: "Title", type: "localized-text", required: true, wide: true },
-      { name: "summary", label: "Summary", type: "localized-textarea", required: true, wide: true, help: "One or two lines, shown on cards." },
-      { name: "description", label: "Description", type: "localized-textarea", required: true, wide: true },
-      { name: "role", label: "Role", type: "localized-text", wide: true },
-      { name: "category", label: "Category", type: "select", options: CATEGORY, required: true },
-      { name: "year", label: "Year", type: "number", required: true },
-      { name: "techStack", label: "Tech stack", type: "tags", wide: true },
-      { name: "coverImage", label: "Cover image", type: "image" },
-      { name: "repoUrl", label: "Repository URL", type: "url" },
-      { name: "liveUrl", label: "Live URL", type: "url" },
-      { name: "featured", label: "Featured", type: "boolean" },
+      { name: "slug", label: "Slug", type: "text", required: true, group: "Basics", help: "URL segment. Changing this breaks existing links." },
+      { name: "title", label: "Title", type: "localized-text", required: true, wide: true, group: "Basics" },
+      { name: "summary", label: "Summary", type: "localized-textarea", required: true, wide: true, group: "Basics", help: "One or two lines, shown on cards." },
+      { name: "platforms", label: "Platforms", type: "multiselect", options: PLATFORMS, required: true, wide: true, group: "Basics", help: "Everything this engagement covered — a web app with a companion phone app and a CMS is all three." },
+      { name: "year", label: "Year", type: "number", required: true, group: "Basics" },
+      { name: "lifecycle", label: "Lifecycle", type: "select", options: LIFECYCLES, required: true, group: "Basics", help: "Where the work stands today. Sunsetted projects stay publishable." },
+      { name: "featured", label: "Favorite", type: "boolean", group: "Basics", help: "Pins this above every other project, however new they are." },
+
+      { name: "problem", label: "Problem", type: "localized-textarea", wide: true, group: "Story", help: "What this existed to solve. Shown above the description." },
+      { name: "description", label: "Description", type: "localized-textarea", required: true, wide: true, group: "Story" },
+      { name: "role", label: "Role", type: "localized-text", wide: true, group: "Story" },
+      { name: "responsibilities", label: "What I did", type: "localized-list", wide: true, group: "Story", help: "One contribution per line." },
+      { name: "outcomes", label: "Outcomes", type: "localized-list", wide: true, group: "Story", help: "One result per line. Numbers land harder than adjectives." },
+
+      { name: "startDate", label: "Start date", type: "date", group: "Timeline" },
+      { name: "endDate", label: "End date", type: "date", group: "Timeline", help: "Leave empty if still ongoing." },
+      { name: "teamSize", label: "Team size", type: "number", group: "Timeline" },
+
+      { name: "coverImage", label: "Cover image", type: "image", group: "Media" },
+      {
+        name: "gallery",
+        label: "Gallery",
+        type: "gallery",
+        group: "Media",
+        help: "Screenshots of anything that cannot be reached publicly. Mixed aspect ratios are fine — the page lays each one out at its real shape.",
+      },
+
+      {
+        name: "links",
+        label: "Links",
+        type: "repeater",
+        group: "Links",
+        addLabel: "Add link",
+        help: "Only public links have their address published. Request and internal links render as a button and a note, and their URL never reaches the page.",
+        itemFields: [
+          { name: "kind", label: "Kind", type: "select", options: LINK_KINDS, required: true },
+          { name: "access", label: "Access", type: "select", options: LINK_ACCESS, required: true },
+          { name: "url", label: "URL", type: "url", wide: true },
+          { name: "label", label: "Label override", type: "localized-text", wide: true },
+        ],
+      },
+
+      {
+        name: "partners",
+        label: "Partners",
+        type: "repeater",
+        group: "Partners",
+        addLabel: "Add partner",
+        help: "The agency the work went through, and the end client. Use the URL override to point at their page about this project rather than their homepage.",
+        itemFields: [
+          { name: "partner", label: "Partner", type: "reference", relationTo: "partners", required: true },
+          { name: "role", label: "Role", type: "select", options: PARTNER_ROLES, required: true },
+          { name: "url", label: "URL override", type: "url", wide: true },
+        ],
+      },
+
+      { name: "techStack", label: "Tech stack", type: "tags", wide: true, group: "Meta" },
+      { ...ORDER_FIELD, group: "Meta" },
+      { ...STATUS_FIELD, group: "Meta" },
+    ],
+  },
+
+  partners: {
+    label: "Partners",
+    singular: "Partner",
+    model: Partner,
+    titleField: "name",
+    listColumns: [{ name: "kind", label: "Kind" }],
+    sort: { order: 1 },
+    reorderable: true,
+    fields: [
+      { name: "slug", label: "Slug", type: "text", required: true, help: "URL segment on the partners page." },
+      { name: "name", label: "Name", type: "text", required: true },
+      { name: "kind", label: "Kind", type: "select", options: PARTNER_KINDS, required: true, help: "How you usually work with them. A project can still override the role." },
+      { name: "logo", label: "Logo", type: "image" },
+      { name: "url", label: "Website", type: "url", wide: true, help: "Default destination. Individual projects can point somewhere more specific." },
+      { name: "description", label: "Description", type: "localized-textarea", wide: true },
       ORDER_FIELD,
       STATUS_FIELD,
     ],
@@ -102,6 +191,7 @@ export const RESOURCES: Record<ResourceKey, ResourceDef> = {
       { name: "format", label: "Format" },
     ],
     sort: { order: 1 },
+    reorderable: true,
     fields: [
       { name: "slug", label: "Slug", type: "text", required: true },
       { name: "track", label: "Track", type: "localized-text", required: true, wide: true },
@@ -148,6 +238,8 @@ export const RESOURCES: Record<ResourceKey, ResourceDef> = {
       { name: "relationship", label: "Relationship" },
     ],
     sort: { featured: -1, order: 1 },
+    reorderable: true,
+    favoriteField: "featured",
     fields: [
       { name: "name", label: "Name", type: "text", required: true, help: "Only publish with that person's permission." },
       { name: "company", label: "Company", type: "text" },
@@ -172,6 +264,7 @@ export const RESOURCES: Record<ResourceKey, ResourceDef> = {
       { name: "level", label: "Level" },
     ],
     sort: { order: 1 },
+    reorderable: true,
     fields: [
       { name: "title", label: "Title", type: "localized-text", required: true, wide: true },
       { name: "description", label: "Description", type: "localized-textarea", required: true, wide: true },
@@ -195,6 +288,7 @@ export const RESOURCES: Record<ResourceKey, ResourceDef> = {
       { name: "language", label: "Language" },
     ],
     sort: { order: 1 },
+    reorderable: true,
     fields: [
       { name: "name", label: "Name", type: "text", required: true },
       { name: "repoUrl", label: "Repository URL", type: "url", required: true, wide: true },
@@ -215,6 +309,7 @@ export const RESOURCES: Record<ResourceKey, ResourceDef> = {
     titleField: "title",
     listColumns: [{ name: "language", label: "Language" }],
     sort: { order: 1 },
+    reorderable: true,
     fields: [
       { name: "slug", label: "Slug", type: "text", required: true },
       { name: "title", label: "Title", type: "localized-text", required: true, wide: true },

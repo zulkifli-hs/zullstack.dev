@@ -16,7 +16,8 @@
     "openSource": "Open Source",
     "playground": "Playground",
     "menu": "Menu",
-    "close": "Tutup menu"
+    "close": "Tutup menu",
+    "partners": "Partner"
   },
   "hero": {
     "eyebrow": "// zullstack.dev",
@@ -45,7 +46,41 @@
       "title": "Proyek",
       "description": "Sistem yang saya rancang, bangun, dan rilis — beserta batasan yang membentuknya.",
       "cta": "Semua proyek",
-      "empty": "Belum ada proyek yang dipublikasikan."
+      "empty": "Belum ada proyek yang dipublikasikan.",
+      "problem": "Masalah",
+      "responsibilities": "Yang saya kerjakan",
+      "outcomes": "Hasil",
+      "gallery": "Tampilan",
+      "galleryHint": "Cuplikan dari bagian produk yang tidak bisa diakses publik.",
+      "collaboration": "Kolaborasi dengan",
+      "client": "Klien",
+      "duration": "Durasi",
+      "team": "Tim",
+      "teamSize": "{count, plural, other {# orang}}",
+      "months": "{count, plural, other {# bulan}}",
+      "present": "Sekarang",
+      "links": "Tautan",
+      "requestDemo": "Minta demo",
+      "requestDemoHint": "Belum ada akun demo publik untuk yang ini — bilang saja, saya siapkan.",
+      "internalAccess": "Internal — tidak bisa diakses publik",
+      "favorite": "Favorit",
+      "lifecycle": {
+        "live": "Aktif",
+        "in-development": "Dalam pengembangan",
+        "sunsetted": "Sudah tidak beroperasi",
+        "internal": "Internal"
+      },
+      "linkKinds": {
+        "live": "Situs langsung",
+        "repo": "Kode sumber",
+        "demo": "Demo",
+        "case-study": "Studi kasus",
+        "docs": "Dokumentasi",
+        "design": "Desain",
+        "app-store": "App Store",
+        "play-store": "Google Play",
+        "other": "Tautan"
+      }
     },
     "experience": {
       "eyebrow": "// linimasa",
@@ -98,6 +133,19 @@
       "description": "Snippet dan eksperimen langsung — kecil, bisa dijalankan, dan bebas Anda pakai.",
       "cta": "Buka sandbox",
       "empty": "Belum ada eksperimen yang dipublikasikan."
+    },
+    "partners": {
+      "eyebrow": "// bersama",
+      "title": "Partner & klien",
+      "description": "Agency tempat saya mengerjakan proyek, dan klien yang menjadi tujuannya. Sebagian pekerjaannya tidak bisa ditampilkan — kreditnya tetap berlaku.",
+      "cta": "Semua partner",
+      "empty": "Belum ada partner yang dipublikasikan.",
+      "projectCount": "{count, plural, =0 {Belum ada proyek publik} other {# proyek}}",
+      "kind": {
+        "agency": "Agency",
+        "client": "Klien",
+        "both": "Agency & klien"
+      }
     }
   },
   "cta": {

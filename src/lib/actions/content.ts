@@ -105,3 +105,53 @@ export async function toggleStatus(resourceKey: string, id: string) {
   revalidatePublicSite();
   revalidatePath(`/admin/${key}`);
 }
+
+/**
+ * Persists a dragged ordering as `order = position in the list`.
+ *
+ * Rewriting every position rather than nudging the moved row keeps `order`
+ * dense and gap-free, so a later insert can never collide. One `bulkWrite`
+ * instead of N updates because a drag can touch every row between the source
+ * and the target.
+ */
+export async function reorderEntities(resourceKey: string, ids: string[]) {
+  await requireAdmin();
+
+  const key = assertResource(resourceKey);
+  if (!RESOURCES[key].reorderable) throw new Error(`${key} is not reorderable`);
+  if (ids.length === 0) return;
+
+  await connectDB();
+
+  await RESOURCES[key].model.bulkWrite(
+    ids.map((id, index) => ({
+      updateOne: { filter: { _id: id }, update: { $set: { order: index } } },
+    })),
+  );
+
+  revalidatePublicSite();
+  revalidatePath(`/admin/${key}`);
+}
+
+/**
+ * Flips the resource's favorite flag, which is the leading sort key — so a
+ * favorite stays above every other entry no matter how new the others are.
+ */
+export async function toggleFavorite(resourceKey: string, id: string) {
+  await requireAdmin();
+
+  const key = assertResource(resourceKey);
+  const field = RESOURCES[key].favoriteField;
+  if (!field) throw new Error(`${key} has no favorite field`);
+
+  await connectDB();
+
+  const doc = await RESOURCES[key].model.findById(id).select(field);
+  if (!doc) return;
+
+  doc.set(field, !doc.get(field));
+  await doc.save();
+
+  revalidatePublicSite();
+  revalidatePath(`/admin/${key}`);
+}

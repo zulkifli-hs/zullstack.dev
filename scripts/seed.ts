@@ -21,6 +21,7 @@ import {
   Experience,
   MentoringTrack,
   OpenSource,
+  Partner,
   Project,
   Resource,
   SiteConfig,
@@ -32,6 +33,7 @@ import {
   experience,
   mentoringTracks,
   openSource,
+  partners,
   projects,
   resources,
   siteConfig,
@@ -48,6 +50,7 @@ async function seed() {
   const collections = [
     { model: SiteConfig, data: [siteConfig], name: "SiteConfig" },
     { model: Project, data: projects, name: "Project" },
+    { model: Partner, data: partners, name: "Partner" },
     { model: Experience, data: experience, name: "Experience" },
     { model: MentoringTrack, data: mentoringTracks, name: "MentoringTrack" },
     { model: Resource, data: resources, name: "Resource" },

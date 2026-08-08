@@ -1,6 +1,28 @@
-import type { Localized, PublishStatus, StoredImage } from "@/lib/models/shared";
+import type {
+  GalleryImage,
+  Lifecycle,
+  LinkAccess,
+  LinkKind,
+  Localized,
+  PartnerKind,
+  PartnerRole,
+  Platform,
+  PublishStatus,
+  StoredImage,
+} from "@/lib/models/shared";
 
-export type { Localized, PublishStatus, StoredImage };
+export type {
+  GalleryImage,
+  Lifecycle,
+  LinkAccess,
+  LinkKind,
+  Localized,
+  PartnerKind,
+  PartnerRole,
+  Platform,
+  PublishStatus,
+  StoredImage,
+};
 
 type Base = {
   id: string;
@@ -10,20 +32,65 @@ type Base = {
   updatedAt: string;
 };
 
+export type Partner = Base & {
+  slug: string;
+  name: string;
+  logo?: StoredImage;
+  url?: string;
+  kind: PartnerKind;
+  description: Localized;
+};
+
+/**
+ * `url` is optional at the type level because the query layer removes it for
+ * any link that is not publicly accessible — the shape survives so the button
+ * still renders, the address does not.
+ */
+export type ProjectLink = {
+  kind: LinkKind;
+  label?: Localized;
+  url?: string;
+  access: LinkAccess;
+};
+
+/** As stored: `partner` is an id. */
+export type ProjectPartner = {
+  partner: string;
+  role: PartnerRole;
+  url?: string;
+};
+
+/** As read by the detail page, which populates the reference. */
+export type ProjectPartnerResolved = Omit<ProjectPartner, "partner"> & {
+  partner: Partner | null;
+};
+
 export type Project = Base & {
   slug: string;
   title: Localized;
   summary: Localized;
   description: Localized;
-  category: "web" | "mobile" | "backend" | "devops" | "other";
+  problem: Localized;
+  platforms: Platform[];
+  lifecycle: Lifecycle;
   techStack: string[];
   role: Localized;
+  responsibilities: { en: string[]; id: string[] };
+  outcomes: { en: string[]; id: string[] };
+  startDate: string | null;
+  endDate: string | null;
+  teamSize: number | null;
   coverImage?: StoredImage;
-  gallery: StoredImage[];
-  repoUrl?: string;
-  liveUrl?: string;
+  gallery: GalleryImage[];
+  links: ProjectLink[];
+  partners: ProjectPartner[];
   featured: boolean;
   year: number;
+};
+
+/** A project read through `getProjectBySlug`, whose partners are populated. */
+export type ProjectDetail = Omit<Project, "partners"> & {
+  partners: ProjectPartnerResolved[];
 };
 
 export type Experience = Base & {

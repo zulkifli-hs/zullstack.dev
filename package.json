@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
+    "migrate:projects": "tsx scripts/migrate-projects.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm gen:lens --check && pnpm build",
     "create-admin": "tsx scripts/create-admin.ts",
     "cleanup-test-data": "tsx scripts/cleanup-test-data.ts",

@@ -16,6 +16,7 @@ export type NavKey =
   | "mentoring"
   | "articles"
   | "testimonials"
+  | "partners"
   | "openSource"
   | "resources"
   | "playground";
@@ -38,6 +39,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/mentoring", key: "mentoring" },
   { href: "/articles", key: "articles" },
   { href: "/testimonials", key: "testimonials" },
+  { href: "/partners", key: "partners" },
   { href: "/open-source", key: "openSource" },
   // Still being designed — hidden from the public site until they are ready.
   { href: "/resources", key: "resources", experimental: true },
@@ -49,7 +51,7 @@ export const PUBLIC_NAV = NAV_ITEMS.filter((item) => !item.experimental);
 
 /** Compact set for the desktop header, which has limited horizontal room. */
 export const HEADER_NAV = PUBLIC_NAV.filter(
-  (item) => !["/testimonials", "/open-source"].includes(item.href),
+  (item) => !["/testimonials", "/partners", "/open-source"].includes(item.href),
 );
 
 /**
@@ -61,10 +63,10 @@ export const HEADER_NAV = PUBLIC_NAV.filter(
  * actions or settings. So search, theme, language and the glass controls stay
  * in the top bar where they already live, and no "Tools" tab exists.
  *
- * There is no "More" tab either. Testimonials and Open Source are reachable
- * from their home-page sections — both already carry a "see all" link — and
- * from the footer, which is a better place for supporting evidence than a
- * catch-all tab.
+ * There is no "More" tab either. Testimonials, Partners and Open Source are
+ * reachable from the footer, which is a better place for supporting evidence
+ * than a catch-all tab — and Partners is also linked from every project that
+ * credits one, which is where anyone would actually go looking for it.
  */
 export const TAB_NAV: NavItem[] = [
   { href: "/", key: "home" },

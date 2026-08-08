@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AdminShell } from "@/components/admin/admin-shell";
-import { EntityRow } from "@/components/admin/entity-row";
+import { EntityList, type EntityListItem } from "@/components/admin/entity-list";
 import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth-guard";
 import { isResourceKey, RESOURCE_KEYS, RESOURCES } from "@/lib/admin/resources";
@@ -31,7 +31,18 @@ export default async function ResourceListPage({ params }: { params: Params }) {
   const docs = await def.model.find().sort(def.sort).lean();
   // Same normalisation the public query layer does: `.lean()` skips schema
   // transforms, so `_id` never becomes `id` on its own.
-  const items = JSON.parse(JSON.stringify(docs)) as Record<string, unknown>[];
+  const docsJson = JSON.parse(JSON.stringify(docs)) as Record<string, unknown>[];
+
+  const items: EntityListItem[] = docsJson.map((doc) => ({
+    id: String(doc._id),
+    title: titleOf(doc, def.titleField),
+    status: String(doc.status ?? "draft"),
+    favorite: Boolean(def.favoriteField && doc[def.favoriteField]),
+    columns: (def.listColumns ?? []).map((column) => ({
+      label: column.label,
+      value: formatCell(doc[column.name]),
+    })),
+  }));
 
   return (
     <AdminShell email={session.user.email}>
@@ -40,6 +51,7 @@ export default async function ResourceListPage({ params }: { params: Params }) {
           <h1 className="text-2xl font-semibold tracking-tight">{def.label}</h1>
           <p className="text-muted-foreground mt-1 font-mono text-xs">
             {items.length} {items.length === 1 ? "entry" : "entries"}
+            {def.reorderable && items.length > 1 && " · drag to reorder"}
           </p>
         </div>
 
@@ -54,24 +66,22 @@ export default async function ResourceListPage({ params }: { params: Params }) {
           Nothing here yet.
         </p>
       ) : (
-        <ul className="border-hairline divide-hairline mt-8 divide-y overflow-hidden rounded-xl border">
-          {items.map((item) => (
-            <EntityRow
-              key={String(item._id)}
-              resource={resource}
-              id={String(item._id)}
-              title={titleOf(item, def.titleField)}
-              status={String(item.status ?? "draft")}
-              columns={(def.listColumns ?? []).map((column) => ({
-                label: column.label,
-                value: String(item[column.name] ?? "—"),
-              }))}
-            />
-          ))}
-        </ul>
+        <EntityList
+          resource={resource}
+          items={items}
+          reorderable={Boolean(def.reorderable)}
+          hasFavorites={Boolean(def.favoriteField)}
+        />
       )}
     </AdminShell>
   );
+}
+
+/** Array columns (platforms, tags) would otherwise stringify with no spaces. */
+function formatCell(value: unknown): string {
+  if (Array.isArray(value)) return value.length ? value.join(", ") : "—";
+  if (value == null || value === "") return "—";
+  return String(value);
 }
 
 /** Title fields may be plain strings or `{ en, id }` — show English in admin. */

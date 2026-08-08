@@ -49,7 +49,7 @@ export async function SiteHeader() {
 
         <nav
           aria-label={t("label")}
-          className="relative flex h-14 items-center gap-2 pr-2 pl-4 sm:h-16 sm:pr-3 sm:pl-5"
+          className="relative flex h-14 items-center gap-2 pr-2 pl-4 sm:h-16 sm:pr-6 sm:pl-5"
         >
           <Link href="/" aria-label="Zullstack — home" className="shrink-0">
             {/* Above the fold on every page, so it is an LCP candidate. */}
@@ -70,7 +70,7 @@ export async function SiteHeader() {
             <CommandMenu />
             <TransparencyToggle />
             <LocaleSwitcher />
-            <ThemeToggle />
+            {/* <ThemeToggle /> */}
             {/* The capsule's right-hand anchor, as in the reference designs.
                 Hidden on mobile, where the floating button carries it instead —
                 two triggers, one surface. */}
