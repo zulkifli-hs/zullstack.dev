@@ -55,7 +55,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
   ]);
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pt-16 pb-8 sm:pt-20">
+    <main className="mx-auto max-w-6xl px-6 pt-16 pb-8 sm:pt-20">
       <Link
         href="/articles"
         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 font-mono text-xs transition-colors"

@@ -88,7 +88,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
   const requestHref = demoRequestHref(config, pick(project.title, locale), t("requestDemo"));
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pt-16 pb-8 sm:pt-20">
+    <main className="mx-auto max-w-6xl px-6 pt-16 pb-8 sm:pt-20">
       <Link
         href="/projects"
         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 font-mono text-xs transition-colors"
