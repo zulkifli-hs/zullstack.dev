@@ -3,6 +3,8 @@ import { model, models, Schema } from "mongoose";
 import {
   baseFields,
   baseSchemaOptions,
+  GALLERY_DISPLAYS,
+  galleryGroupSchema,
   galleryImageSchema,
   imageSchema,
   LIFECYCLES,
@@ -76,6 +78,10 @@ const projectSchema = new Schema(
     teamSize: { type: Number, default: null },
     coverImage: { type: imageSchema, required: false },
     gallery: { type: [galleryImageSchema], default: [] },
+    // Grouping is opt-in per project: a case study with forty screenshots needs
+    // sections, one with three would only be made harder to read by them.
+    galleryDisplay: { type: String, enum: GALLERY_DISPLAYS, default: "flat" },
+    galleryGroups: { type: [galleryGroupSchema], default: [] },
     links: { type: [projectLinkSchema], default: [] },
     partners: { type: [projectPartnerSchema], default: [] },
     featured: { type: Boolean, default: false, index: true },

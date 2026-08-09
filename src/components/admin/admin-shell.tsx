@@ -35,13 +35,17 @@ export const ADMIN_NAV = [
 export function AdminShell({ children, email }: { children: ReactNode; email?: string }) {
   return (
     <div className="flex min-h-dvh">
-      <aside className="border-hairline bg-card/40 hidden w-60 shrink-0 flex-col border-r lg:flex">
-        <div className="border-hairline flex h-16 items-center gap-3 border-b px-5">
+      {/* Pinned to the viewport rather than scrolling with the page. `h-dvh`
+          plus `sticky top-0` is what makes the column a fixed frame: the nav
+          inside it gets its own scrollbar, so a long edit form no longer drags
+          the navigation out of reach. */}
+      <aside className="border-hairline bg-card/40 sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r lg:flex">
+        <div className="border-hairline flex h-16 shrink-0 items-center gap-3 border-b px-5">
           <Logo className="h-7" />
           <span className="lab-label text-muted-foreground">admin</span>
         </div>
 
-        <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
+        <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-3">
           {ADMIN_NAV.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
@@ -54,7 +58,7 @@ export function AdminShell({ children, email }: { children: ReactNode; email?: s
           ))}
         </nav>
 
-        <div className="border-hairline border-t p-3">
+        <div className="border-hairline shrink-0 border-t p-3">
           {email && (
             <p className="text-muted-foreground truncate px-3 pb-2 font-mono text-xs">{email}</p>
           )}
@@ -65,6 +69,9 @@ export function AdminShell({ children, email }: { children: ReactNode; email?: s
       <div className="min-w-0 flex-1">
         {/* Mobile nav: the sidebar is hidden below lg, so the sections need
             a reachable entry point rather than being unreachable on phones. */}
+        {/* Deliberately not sticky: the edit forms pin their own save bar to
+            the top, and two competing sticky bars on a phone leaves almost no
+            room for the form itself. */}
         <div className="border-hairline flex gap-1 overflow-x-auto border-b p-2 lg:hidden">
           {ADMIN_NAV.map(({ href, label }) => (
             <Link

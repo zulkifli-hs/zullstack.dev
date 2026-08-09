@@ -6,6 +6,7 @@ import { GlassPanel } from "@/components/glass/glass-panel";
 import { ListingPage } from "@/components/lab/page-shell";
 import { Badge } from "@/components/ui/badge";
 import { resolveLocale } from "@/i18n/resolve-locale";
+import { cloudinarySrc } from "@/lib/images/cloudinary";
 import { getPartnerProjectCounts, getPartners } from "@/lib/queries";
 import { pick } from "@/lib/utils";
 
@@ -51,7 +52,7 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
               <div className="flex h-10 items-center">
                 {partner.logo?.url ? (
                   <Image
-                    src={partner.logo.url}
+                    src={cloudinarySrc(partner.logo)}
                     alt={partner.logo.alt?.[locale] || partner.name}
                     width={partner.logo.width ?? 160}
                     height={partner.logo.height ?? 80}

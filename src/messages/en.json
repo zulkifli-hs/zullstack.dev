@@ -80,7 +80,9 @@
         "app-store": "App Store",
         "play-store": "Google Play",
         "other": "Link"
-      }
+      },
+      "longImage": "long",
+      "galleryOther": "Other"
     },
     "experience": {
       "eyebrow": "// timeline",

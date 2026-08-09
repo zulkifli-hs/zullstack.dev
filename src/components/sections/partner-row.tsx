@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import type { Locale } from "@/i18n/routing";
+import { cloudinarySrc } from "@/lib/images/cloudinary";
 import { partnerHref } from "@/lib/project";
 import { cn } from "@/lib/utils";
 import type { ProjectPartnerResolved } from "@/types/content";
@@ -42,7 +43,7 @@ export function PartnerRow({
             <>
               {partner.logo?.url ? (
                 <Image
-                  src={partner.logo.url}
+                  src={cloudinarySrc(partner.logo)}
                   alt={partner.logo.alt?.[locale] || partner.name}
                   width={partner.logo.width ?? 96}
                   height={partner.logo.height ?? 96}

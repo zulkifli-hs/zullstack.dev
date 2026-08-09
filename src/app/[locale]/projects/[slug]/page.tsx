@@ -1,4 +1,4 @@
-import { ArrowLeft, ExternalLink, GitBranch, Lock, Mail } from "lucide-react";
+import { ArrowLeft, ExternalLink, GitBranch, Lock, Mail, Star } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -22,6 +22,7 @@ import {
   publicLinks,
   requestableLinks,
 } from "@/lib/project";
+import { cloudinarySrc } from "@/lib/images/cloudinary";
 import { getProjectBySlug, getProjectSlugs, getSiteConfig } from "@/lib/queries";
 import { localeAlternates } from "@/lib/site";
 import { pick, pickList } from "@/lib/utils";
@@ -97,25 +98,36 @@ export default async function ProjectPage({ params }: { params: Params }) {
         {tCommon("backTo", { section: t("title") })}
       </Link>
 
-      <div className="mt-8 flex flex-wrap items-center gap-3">
-        <p className="lab-label text-signal">{`{ ${project.platforms.join(" · ")} }`}</p>
-        {project.lifecycle !== "live" && (
-          <Badge tone="neutral">{t(`lifecycle.${project.lifecycle}`)}</Badge>
-        )}
+      {/* The page is wide so the gallery can be, but a paragraph at 1152px is
+          ~150 characters a line. Text blocks are held to a readable measure;
+          cover, partners and gallery keep the full width. */}
+      <div className="max-w-[68ch]">
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <p className="lab-label text-signal">{`{ ${project.platforms.join(" · ")} }`}</p>
+          {project.lifecycle !== "live" && (
+            <Badge tone="neutral">{t(`lifecycle.${project.lifecycle}`)}</Badge>
+          )}
+          {project.featured && (
+            <Badge tone="signal" className="inline-flex items-center gap-1">
+              <Star className="size-3 fill-current" />
+              {t("favorite")}
+            </Badge>
+          )}
+        </div>
+
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+          {pick(project.title, locale)}
+        </h1>
+
+        <p className="text-muted-foreground mt-4 text-base text-pretty">
+          {pick(project.summary, locale)}
+        </p>
       </div>
-
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-        {pick(project.title, locale)}
-      </h1>
-
-      <p className="text-muted-foreground mt-4 text-base text-pretty">
-        {pick(project.summary, locale)}
-      </p>
 
       {project.coverImage?.url && (
         <div className="border-hairline/60 relative mt-8 aspect-16/9 overflow-hidden rounded-xl border">
           <Image
-            src={project.coverImage.url}
+            src={cloudinarySrc(project.coverImage)}
             alt={project.coverImage.alt?.[locale] || pick(project.title, locale)}
             fill
             // Above the fold on a detail page, so it should not lazy-load.
@@ -135,9 +147,15 @@ export default async function ProjectPage({ params }: { params: Params }) {
         className="text-muted-foreground mt-8 grid grid-cols-2 gap-4 font-mono text-xs sm:grid-cols-3"
       >
         <div>
-          <dt className="lab-label">{range ? t("duration") : "year"}</dt>
-          <dd className="tabular mt-1">{range ?? project.year}</dd>
+          <dt className="lab-label">year</dt>
+          <dd className="tabular mt-1">{project.year}</dd>
         </div>
+        {range && (
+          <div>
+            <dt className="lab-label">{t("duration")}</dt>
+            <dd className="tabular mt-1">{range}</dd>
+          </div>
+        )}
         {months && (
           <div>
             <dt className="lab-label">months</dt>
@@ -170,16 +188,18 @@ export default async function ProjectPage({ params }: { params: Params }) {
       )}
 
       {pick(project.problem, locale) && (
-        <section className="mt-10">
+        <section className="mt-10 max-w-[68ch]">
           <h2 className="lab-label text-muted-foreground">{t("problem")}</h2>
           <p className="mt-3 leading-relaxed text-pretty">{pick(project.problem, locale)}</p>
         </section>
       )}
 
-      <div className="mt-8 leading-relaxed text-pretty">{pick(project.description, locale)}</div>
+      <div className="mt-8 max-w-[68ch] leading-relaxed text-pretty">
+        {pick(project.description, locale)}
+      </div>
 
       {responsibilities.length > 0 && (
-        <section className="mt-10">
+        <section className="mt-10 max-w-[68ch]">
           <h2 className="lab-label text-muted-foreground">{t("responsibilities")}</h2>
           <ul className="marker:text-signal mt-3 list-disc space-y-2 pl-5 leading-relaxed">
             {responsibilities.map((entry) => (
@@ -192,7 +212,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
       )}
 
       {outcomes.length > 0 && (
-        <section className="mt-10">
+        <section className="mt-10 max-w-[68ch]">
           <h2 className="lab-label text-muted-foreground">{t("outcomes")}</h2>
           <ul className="marker:text-signal mt-3 list-disc space-y-2 pl-5 leading-relaxed">
             {outcomes.map((entry) => (
@@ -201,20 +221,6 @@ export default async function ProjectPage({ params }: { params: Params }) {
               </li>
             ))}
           </ul>
-        </section>
-      )}
-
-      {project.gallery.length > 0 && (
-        <section className="mt-12">
-          <h2 className="lab-label text-muted-foreground">{t("gallery")}</h2>
-          <p className="text-muted-foreground mt-1 text-xs">{t("galleryHint")}</p>
-          <div className="mt-4">
-            <ProjectGallery
-              images={project.gallery}
-              locale={locale}
-              title={pick(project.title, locale)}
-            />
-          </div>
         </section>
       )}
 
@@ -269,6 +275,26 @@ export default async function ProjectPage({ params }: { params: Params }) {
               {t("internalAccess")}
             </p>
           )}
+        </section>
+      )}
+
+      {/* Last on the page, deliberately. A case study can carry twenty
+          screenshots, and anything rendered after them is effectively unread —
+          so every fact about the project appears above this point. */}
+      {project.gallery.length > 0 && (
+        <section className="border-hairline/60 mt-14 border-t pt-10">
+          <h2 className="lab-label text-muted-foreground">{t("gallery")}</h2>
+          <p className="text-muted-foreground mt-1 max-w-[68ch] text-xs">{t("galleryHint")}</p>
+          <div className="mt-5">
+            <ProjectGallery
+              images={project.gallery}
+              locale={locale}
+              title={pick(project.title, locale)}
+              display={project.galleryDisplay}
+              groups={project.galleryGroups}
+              labels={{ long: t("longImage"), ungrouped: t("galleryOther") }}
+            />
+          </div>
         </section>
       )}
     </main>

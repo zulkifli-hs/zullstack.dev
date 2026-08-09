@@ -11,8 +11,14 @@ import { connectDB } from "@/lib/db";
 
 type Params = Promise<{ resource: string }>;
 
+/**
+ * `projects` is excluded: it has its own literal route, which shadows this one.
+ * Listing it here would advertise a param that can never be reached.
+ */
 export function generateStaticParams() {
-  return RESOURCE_KEYS.map((resource) => ({ resource }));
+  return RESOURCE_KEYS.filter((resource) => resource !== "projects").map((resource) => ({
+    resource,
+  }));
 }
 
 export async function generateMetadata({ params }: { params: Params }) {

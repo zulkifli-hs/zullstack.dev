@@ -58,7 +58,7 @@ export function HeroBackground() {
 
           if (dist < 120) {
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(50, 106, 253, ${0.1 * (1 - dist / 120)})`;
+            ctx.strokeStyle = `rgba(50, 106, 253, ${0.1 * (1 - dist / 180)})`;
             ctx.lineWidth = 0.5;
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);

@@ -1,18 +1,27 @@
 import { Schema, type SchemaDefinitionProperty } from "mongoose";
 
-/** A string that exists in both site languages. */
-export type Localized = { en: string; id: string };
+import type { GalleryGroup, GalleryImage, Localized, ProjectLink, StoredImage } from "@/lib/content-enums";
+import {
+  CROP_RATIOS,
+  DEFAULT_GALLERY_COLS,
+  DEFAULT_GALLERY_ROWS,
+  GALLERY_COLS,
+  GALLERY_FITS,
+  GALLERY_ROWS,
+  LINK_ACCESS,
+  LINK_KINDS,
+  PARTNER_ROLES,
+} from "@/lib/content-enums";
 
-/** An image stored in Cloudinary. `publicId` is what lets us delete/transform it. */
-export type StoredImage = {
-  url: string;
-  publicId: string;
-  alt?: Localized;
-  width?: number;
-  height?: number;
-};
-
-export type PublishStatus = "draft" | "published";
+/**
+ * Mongoose building blocks.
+ *
+ * The vocabulary itself — every enum and plain shape — lives in
+ * `lib/content-enums.ts` so client components can import an option list without
+ * dragging the driver into the browser bundle. Re-exported here so server code
+ * has a single import site.
+ */
+export * from "@/lib/content-enums";
 
 /**
  * Bilingual field factory.
@@ -57,6 +66,16 @@ export const imageSchema = new Schema<StoredImage>(
     },
     width: Number,
     height: Number,
+    // Cropping is non-destructive: only the rectangle is stored and Cloudinary
+    // applies it at delivery, so it can be adjusted or removed at any time
+    // without the original ever having been overwritten.
+    crop: {
+      _id: false,
+      type: { x: Number, y: Number, w: Number, h: Number },
+      required: false,
+      default: null,
+    },
+    ratio: { type: String, enum: CROP_RATIOS, default: "original" },
   },
   { _id: false },
 );
@@ -69,8 +88,6 @@ export const imageSchema = new Schema<StoredImage>(
  * can sit side by side uncropped, and that is impossible without the dimensions
  * Cloudinary returns at upload time.
  */
-export type GalleryImage = StoredImage & { caption?: Localized };
-
 export const galleryImageSchema = new Schema<GalleryImage>(
   {
     ...imageSchema.obj,
@@ -79,43 +96,27 @@ export const galleryImageSchema = new Schema<GalleryImage>(
       type: { en: { type: String, default: "" }, id: { type: String, default: "" } },
       required: false,
     },
+    // Columns and rows, so placement is two-dimensional rather than a single
+    // width that can only ever flow left to right.
+    cols: { type: Number, enum: GALLERY_COLS, default: DEFAULT_GALLERY_COLS },
+    rows: { type: Number, enum: GALLERY_ROWS, default: DEFAULT_GALLERY_ROWS },
+    fit: { type: String, enum: GALLERY_FITS, default: "cover" },
+    group: { type: String, default: "" },
   },
   { _id: false },
 );
 
-/** What a project link points at. Drives the icon and the default label. */
-export const LINK_KINDS = [
-  "live",
-  "repo",
-  "demo",
-  "case-study",
-  "docs",
-  "design",
-  "app-store",
-  "play-store",
-  "other",
-] as const;
-
-/**
- * How reachable a link is.
- *
- * This is the field that lets a private project still be presented honestly.
- * `public` is an ordinary outbound link; `request` renders a "request demo"
- * button and never exposes the address; `internal` renders as a plain statement
- * that the work is not publicly reachable. The query layer strips the `url` of
- * anything that is not `public` before it can reach a rendered page.
- */
-export const LINK_ACCESS = ["public", "request", "internal"] as const;
-
-export type LinkKind = (typeof LINK_KINDS)[number];
-export type LinkAccess = (typeof LINK_ACCESS)[number];
-
-export type ProjectLink = {
-  kind: LinkKind;
-  label?: Localized;
-  url?: string;
-  access: LinkAccess;
-};
+export const galleryGroupSchema = new Schema<GalleryGroup>(
+  {
+    key: { type: String, required: true, trim: true },
+    label: {
+      _id: false,
+      type: { en: { type: String, default: "" }, id: { type: String, default: "" } },
+      required: false,
+    },
+  },
+  { _id: false },
+);
 
 export const projectLinkSchema = new Schema<ProjectLink>(
   {
@@ -133,23 +134,6 @@ export const projectLinkSchema = new Schema<ProjectLink>(
   { _id: false },
 );
 
-export const PARTNER_ROLES = ["collaboration", "client"] as const;
-export type PartnerRole = (typeof PARTNER_ROLES)[number];
-
-/**
- * A partner attached to one project.
- *
- * `url` overrides the partner's own site for this project only. Agencies
- * routinely publish the same work as their portfolio, so the useful destination
- * is that specific case-study page rather than their homepage — and it differs
- * per project even for the same partner.
- */
-export type ProjectPartner = {
-  partner: string;
-  role: PartnerRole;
-  url?: string;
-};
-
 export const projectPartnerSchema = new Schema(
   {
     partner: { type: Schema.Types.ObjectId, ref: "Partner", required: true },
@@ -159,26 +143,6 @@ export const projectPartnerSchema = new Schema(
   { _id: false },
 );
 
-/** Where a project stands today. Independent of `status`, which is editorial. */
-export const LIFECYCLES = ["live", "in-development", "sunsetted", "internal"] as const;
-export type Lifecycle = (typeof LIFECYCLES)[number];
-
-export const PLATFORMS = [
-  "web",
-  "mobile",
-  "cms",
-  "api",
-  "desktop",
-  "devops",
-  "design",
-  "other",
-] as const;
-export type Platform = (typeof PLATFORMS)[number];
-
-export const PARTNER_KINDS = ["agency", "client", "both"] as const;
-export type PartnerKind = (typeof PARTNER_KINDS)[number];
-
-/** Fields every piece of content carries, so listing/ordering logic is uniform. */
 export const baseFields = {
   status: { type: String, enum: ["draft", "published"], default: "draft", index: true },
   order: { type: Number, default: 0 },

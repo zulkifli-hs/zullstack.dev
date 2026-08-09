@@ -7,6 +7,7 @@ import { Tag } from "@/components/lab/section";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
+import { cloudinarySrc } from "@/lib/images/cloudinary";
 import { internalLinks, publicLinks } from "@/lib/project";
 import { pick } from "@/lib/utils";
 import type { Project } from "@/types/content";
@@ -45,7 +46,7 @@ export function ProjectGrid({
             {project.coverImage?.url && (
               <div className="border-hairline/60 relative aspect-16/9 border-b">
                 <Image
-                  src={project.coverImage.url}
+                  src={cloudinarySrc(project.coverImage)}
                   alt={project.coverImage.alt?.[locale] ?? ""}
                   fill
                   // Three columns at lg, two at md, one below — telling the

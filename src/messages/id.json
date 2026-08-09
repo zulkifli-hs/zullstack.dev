@@ -80,7 +80,9 @@
         "app-store": "App Store",
         "play-store": "Google Play",
         "other": "Tautan"
-      }
+      },
+      "longImage": "panjang",
+      "galleryOther": "Lainnya"
     },
     "experience": {
       "eyebrow": "// linimasa",

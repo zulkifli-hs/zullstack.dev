@@ -1,11 +1,36 @@
 import { z } from "zod";
 
+import {
+  CROP_RATIOS,
+  DEFAULT_GALLERY_COLS,
+  DEFAULT_GALLERY_ROWS,
+  GALLERY_COLUMN_COUNT,
+  GALLERY_FITS,
+  GALLERY_ROW_COUNT,
+} from "@/lib/content-enums";
+
 import { JSON_TYPES, type Field } from "./fields";
 
 const localizedText = (required: boolean) => {
   const part = required ? z.string().trim().min(1, "Required") : z.string().trim().default("");
   return z.object({ en: part, id: part });
 };
+
+/**
+ * A crop rectangle, as fractions of the original.
+ *
+ * Clamped rather than rejected: a rectangle a pixel outside the image is a
+ * rounding artefact of the drag, not something worth failing a save over.
+ */
+const cropRect = z
+  .object({
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1),
+    w: z.number().min(0).max(1),
+    h: z.number().min(0).max(1),
+  })
+  .nullable()
+  .optional();
 
 const imageFields = {
   url: z.string().trim(),
@@ -15,6 +40,8 @@ const imageFields = {
   // Previously omitted, which meant every save wrote the document back without
   // an `alt` and silently erased whatever was there.
   alt: localizedText(false).optional(),
+  crop: cropRect,
+  ratio: z.enum(CROP_RATIOS).default("original"),
 };
 
 /** Empty strings mean "no image", which must round-trip as undefined. */
@@ -23,8 +50,15 @@ const storedImage = z
   .transform((value) => (value.url ? value : undefined))
   .optional();
 
-/** Same as a stored image, plus a caption, and never optional inside an array. */
-const galleryImage = z.object({ ...imageFields, caption: localizedText(false).optional() });
+/** Same as a stored image, plus layout, and never optional inside an array. */
+const galleryImage = z.object({
+  ...imageFields,
+  caption: localizedText(false).optional(),
+  cols: z.number().int().min(1).max(GALLERY_COLUMN_COUNT).default(DEFAULT_GALLERY_COLS),
+  rows: z.number().int().min(1).max(GALLERY_ROW_COUNT).default(DEFAULT_GALLERY_ROWS),
+  fit: z.enum(GALLERY_FITS).default("cover"),
+  group: z.string().trim().default(""),
+});
 
 const localizedList = z.object({
   en: z.array(z.string().trim().min(1)).default([]),
@@ -146,6 +180,17 @@ function jsonArray(value: string): unknown[] {
   }
 }
 
+/** Same tolerance for a single JSON object, e.g. an image's crop rectangle. */
+function jsonObject(value: string): unknown {
+  if (!value.trim()) return null;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Turns submitted FormData into the shape `schemaFor` expects.
  *
@@ -218,6 +263,10 @@ export function parseFormData(fields: Field[], formData: FormData) {
           width: num(`${field.name}.width`),
           height: num(`${field.name}.height`),
           alt: { en: get(`${field.name}.alt.en`), id: get(`${field.name}.alt.id`) },
+          // The crop is an object rather than a scalar, so it travels as JSON in
+          // one hidden input instead of four that could disagree with each other.
+          crop: jsonObject(get(`${field.name}.crop`)),
+          ratio: get(`${field.name}.ratio`) || "original",
         };
         break;
       }

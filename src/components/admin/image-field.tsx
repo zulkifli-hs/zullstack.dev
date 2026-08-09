@@ -1,13 +1,15 @@
 "use client";
 
-import { ImageIcon, Loader2, X } from "lucide-react";
+import { Crop, ImageIcon, Loader2, X } from "lucide-react";
 import { useState } from "react";
 
+import { ImageCropDialog } from "@/components/admin/image-crop-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { createUploadSignature } from "@/lib/actions/upload";
-import type { Localized } from "@/lib/models/shared";
+import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";
+import { formatBytes } from "@/lib/images/constraints";
+import type { CropRatio, CropRect, Localized } from "@/lib/content-enums";
 
 type StoredImage = {
   url: string;
@@ -15,6 +17,8 @@ type StoredImage = {
   width?: number;
   height?: number;
   alt?: Localized;
+  crop?: CropRect | null;
+  ratio?: CropRatio;
 };
 
 /**
@@ -24,6 +28,10 @@ type StoredImage = {
  *
  * `publicId` is stored alongside the URL because it is what later allows the
  * asset to be transformed or deleted — a bare URL is a dead end.
+ *
+ * The upload itself lives in `useCloudinaryUpload`, which resizes and re-encodes
+ * before sending — so a cover or a logo is web-sized for the same reason a
+ * gallery screenshot is, without either field knowing how.
  */
 export function ImageField({
   name,
@@ -42,49 +50,30 @@ export function ImageField({
   folder?: string;
 }) {
   const [image, setImage] = useState<StoredImage | undefined>(value);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState<{ from: number; to: number } | null>(null);
+  const [cropping, setCropping] = useState(false);
+  const { upload, pending, error } = useCloudinaryUpload(folder);
   const [alt, setAlt] = useState<Localized>(() => ({
     en: String(value?.alt?.en ?? ""),
     id: String(value?.alt?.id ?? ""),
   }));
 
-  async function upload(file: File) {
-    setPending(true);
-    setError(null);
-
-    try {
-      const signed = await createUploadSignature(folder);
-
-      const body = new FormData();
-      body.append("file", file);
-      body.append("api_key", signed.apiKey);
-      body.append("timestamp", String(signed.timestamp));
-      body.append("signature", signed.signature);
-      body.append("folder", signed.folder);
-
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${signed.cloudName}/image/upload`,
-        { method: "POST", body },
-      );
-
-      if (!response.ok) {
-        const detail = await response.json().catch(() => null);
-        throw new Error(detail?.error?.message ?? `Upload failed (${response.status})`);
-      }
-
-      const result = await response.json();
+  function choose(file: File) {
+    void upload([file], (uploaded) => {
       setImage({
-        url: result.secure_url,
-        publicId: result.public_id,
-        width: result.width,
-        height: result.height,
+        url: uploaded.url,
+        publicId: uploaded.publicId,
+        width: uploaded.width,
+        height: uploaded.height,
+        crop: null,
+        ratio: "original",
       });
-    } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Upload failed.");
-    } finally {
-      setPending(false);
-    }
+      setSaved(
+        uploaded.bytes < uploaded.originalBytes
+          ? { from: uploaded.originalBytes, to: uploaded.bytes }
+          : null,
+      );
+    });
   }
 
   return (
@@ -99,6 +88,13 @@ export function ImageField({
       <input type="hidden" name={`${name}.height`} value={image?.height ?? ""} />
       <input type="hidden" name={`${name}.alt.en`} value={alt.en} />
       <input type="hidden" name={`${name}.alt.id`} value={alt.id} />
+      {/* One JSON input rather than four scalars that could disagree. */}
+      <input
+        type="hidden"
+        name={`${name}.crop`}
+        value={image?.crop ? JSON.stringify(image.crop) : ""}
+      />
+      <input type="hidden" name={`${name}.ratio`} value={image?.ratio ?? "original"} />
 
       {image?.url ? (
         <div className="space-y-3">
@@ -110,15 +106,29 @@ export function ImageField({
             {/* Was a hand-rolled `bg-background/80 backdrop-blur` — one of three
                 uncoordinated blurs that ignored the glass tokens and never
                 degraded. Now a real glass control. */}
-            <Button
-              variant="glass"
-              size="icon-sm"
-              onClick={() => setImage(undefined)}
-              aria-label="Remove image"
-              className="absolute top-2 right-2 [--surface-radius:9999px]"
-            >
-              <X className="size-4" />
-            </Button>
+            <div className="absolute top-2 right-2 flex gap-1.5">
+              {/* Covers are rendered into a fixed 16:9 frame, so without this the
+                  only fix for a badly-shaped upload was to crop it elsewhere and
+                  upload it again. */}
+              <Button
+                variant="glass"
+                size="icon-sm"
+                onClick={() => setCropping(true)}
+                aria-label="Crop image"
+                className="[--surface-radius:9999px]"
+              >
+                <Crop className="size-4" />
+              </Button>
+              <Button
+                variant="glass"
+                size="icon-sm"
+                onClick={() => setImage(undefined)}
+                aria-label="Remove image"
+                className="[--surface-radius:9999px]"
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
           </div>
 
           {/* The schema has always had a bilingual `alt`, but nothing ever wrote
@@ -143,19 +153,44 @@ export function ImageField({
               ))}
             </div>
           </div>
+
+          <p className="text-muted-foreground font-mono text-[10px]">
+            {image.width}×{image.height}
+            {image.crop && ` · cropped ${image.ratio}`}
+            {saved && ` · ${formatBytes(saved.from)} → ${formatBytes(saved.to)}`}
+          </p>
+
+          <ImageCropDialog
+            open={cropping}
+            onOpenChange={setCropping}
+            url={image.url}
+            width={image.width}
+            height={image.height}
+            crop={image.crop}
+            ratio={image.ratio}
+            onApply={(crop, ratio) =>
+              setImage((current) => (current ? { ...current, crop, ratio } : current))
+            }
+          />
         </div>
       ) : (
         <label className="border-hairline hover:border-ring flex w-fit cursor-pointer items-center gap-2 rounded-lg border border-dashed px-4 py-3 text-sm transition-colors">
-          {pending ? <Loader2 className="size-4 animate-spin" /> : <ImageIcon className="size-4" />}
-          {pending ? "Uploading…" : "Choose image"}
+          {pending > 0 ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <ImageIcon className="size-4" />
+          )}
+          {pending > 0 ? "Uploading…" : "Choose image"}
           <input
             type="file"
             accept="image/*"
             className="sr-only"
-            disabled={pending}
+            disabled={pending > 0}
             onChange={(event) => {
               const file = event.target.files?.[0];
-              if (file) void upload(file);
+              // Reset so picking the same file twice still fires a change.
+              event.target.value = "";
+              if (file) choose(file);
             }}
           />
         </label>

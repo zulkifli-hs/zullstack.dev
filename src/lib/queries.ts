@@ -1,5 +1,11 @@
 import "server-only";
 
+import {
+  DEFAULT_GALLERY_COLS,
+  DEFAULT_GALLERY_ROWS,
+  SPAN_TO_COLS,
+  type GallerySpan,
+} from "./content-enums";
 import { connectDB, isDatabaseConfigured } from "./db";
 import { stripPrivateLinkUrls } from "./project";
 import {
@@ -134,12 +140,27 @@ const listOrEmpty = (value: unknown) => {
  */
 function normalizeProject(doc: Record<string, unknown>): Record<string, unknown> {
   const links = Array.isArray(doc.links) ? (doc.links as ProjectLink[]) : [];
+  const gallery = Array.isArray(doc.gallery) ? (doc.gallery as Record<string, unknown>[]) : [];
 
   return {
     ...doc,
     platforms: Array.isArray(doc.platforms) ? doc.platforms : [],
     techStack: Array.isArray(doc.techStack) ? doc.techStack : [],
-    gallery: Array.isArray(doc.gallery) ? doc.gallery : [],
+    // Images stored before the layout fields existed have no placement at all,
+    // and the grid indexes straight into its span-class maps with them. `span`
+    // is the pre-bento single-axis width, kept readable so those documents do
+    // not silently lose the layout they were given.
+    gallery: gallery.map((image) => ({
+      ...image,
+      crop: image.crop ?? null,
+      ratio: image.ratio ?? "original",
+      cols: image.cols ?? SPAN_TO_COLS[image.span as GallerySpan] ?? DEFAULT_GALLERY_COLS,
+      rows: image.rows ?? DEFAULT_GALLERY_ROWS,
+      fit: image.fit ?? "cover",
+      group: image.group ?? "",
+    })),
+    galleryDisplay: doc.galleryDisplay ?? "flat",
+    galleryGroups: Array.isArray(doc.galleryGroups) ? doc.galleryGroups : [],
     partners: Array.isArray(doc.partners) ? doc.partners : [],
     lifecycle: doc.lifecycle ?? "live",
     problem: localizedOrEmpty(doc.problem),

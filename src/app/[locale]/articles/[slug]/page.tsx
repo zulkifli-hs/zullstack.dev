@@ -11,6 +11,7 @@ import { Tag } from "@/components/lab/section";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/resolve-locale";
 import { routing } from "@/i18n/routing";
+import { cloudinarySrc } from "@/lib/images/cloudinary";
 import { getArticleBySlug, getArticleSlugs } from "@/lib/queries";
 import { formatDate, pick } from "@/lib/utils";
 
@@ -88,7 +89,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
         {article.coverImage?.url && (
           <div className="border-hairline/60 relative mt-8 aspect-16/9 overflow-hidden rounded-xl border">
             <Image
-              src={article.coverImage.url}
+              src={cloudinarySrc(article.coverImage)}
               alt={pick(article.title, locale)}
               fill
               priority

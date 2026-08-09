@@ -1,5 +1,10 @@
 import type {
+  CropRatio,
+  CropRect,
+  GalleryDisplay,
+  GalleryGroup,
   GalleryImage,
+  GallerySpan,
   Lifecycle,
   LinkAccess,
   LinkKind,
@@ -9,10 +14,15 @@ import type {
   Platform,
   PublishStatus,
   StoredImage,
-} from "@/lib/models/shared";
+} from "@/lib/content-enums";
 
 export type {
+  CropRatio,
+  CropRect,
+  GalleryDisplay,
+  GalleryGroup,
   GalleryImage,
+  GallerySpan,
   Lifecycle,
   LinkAccess,
   LinkKind,
@@ -82,6 +92,8 @@ export type Project = Base & {
   teamSize: number | null;
   coverImage?: StoredImage;
   gallery: GalleryImage[];
+  galleryDisplay: GalleryDisplay;
+  galleryGroups: GalleryGroup[];
   links: ProjectLink[];
   partners: ProjectPartner[];
   featured: boolean;

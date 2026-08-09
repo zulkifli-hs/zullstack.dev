@@ -22,6 +22,12 @@ import mongoose from "mongoose";
 // Next.js loads .env.local automatically; a standalone script does not.
 config({ path: [".env.local", ".env"] });
 
+import {
+  DEFAULT_GALLERY_COLS,
+  DEFAULT_GALLERY_ROWS,
+  SPAN_TO_COLS,
+  type GallerySpan,
+} from "../src/lib/content-enums";
 import { connectDB } from "../src/lib/db";
 import { Partner, Project } from "../src/lib/models";
 
@@ -44,6 +50,8 @@ type LegacyProject = {
   platforms?: string[];
   lifecycle?: string;
   links?: unknown[];
+  gallery?: (Record<string, unknown> & { cols?: number; span?: GallerySpan })[];
+  galleryDisplay?: string;
 };
 
 async function migrate() {
@@ -62,6 +70,8 @@ async function migrate() {
         { repoUrl: { $exists: true } },
         { liveUrl: { $exists: true } },
         { lifecycle: { $exists: false } },
+        { galleryDisplay: { $exists: false } },
+        { "gallery.cols": { $exists: false }, "gallery.0": { $exists: true } },
       ],
     })
     .toArray()) as LegacyProject[];
@@ -98,6 +108,30 @@ async function migrate() {
     if (links.length !== (doc.links?.length ?? 0)) set.links = links;
 
     if (!doc.lifecycle) set.lifecycle = "live";
+    if (!doc.galleryDisplay) set.galleryDisplay = "flat";
+
+    // Gallery images predate the crop and layout fields. Backfilling them here
+    // is belt-and-braces — `normalizeProject` already defaults them on read —
+    // but it keeps what the admin form loads identical to what it will save.
+    //
+    // `span` was the original single-axis width; it maps onto `cols` and is
+    // dropped, since the grid now places on two axes.
+    const gallery = Array.isArray(doc.gallery) ? doc.gallery : [];
+    if (gallery.some((image) => image.cols === undefined)) {
+      set.gallery = gallery.map((image) => {
+        const { span, ...rest } = image as Record<string, unknown> & { span?: GallerySpan };
+
+        return {
+          ...rest,
+          crop: rest.crop ?? null,
+          ratio: rest.ratio ?? "original",
+          cols: rest.cols ?? (span ? SPAN_TO_COLS[span] : DEFAULT_GALLERY_COLS),
+          rows: rest.rows ?? DEFAULT_GALLERY_ROWS,
+          fit: rest.fit ?? "cover",
+          group: rest.group ?? "",
+        };
+      });
+    }
 
     if (Object.keys(set).length === 0 && Object.keys(unset).length === 0) continue;
 
@@ -105,6 +139,7 @@ async function migrate() {
       set.platforms && `platforms=${JSON.stringify(set.platforms)}`,
       set.links && `links=${(set.links as unknown[]).length}`,
       set.lifecycle && `lifecycle=${set.lifecycle}`,
+      set.gallery && `gallery=${(set.gallery as unknown[]).length}`,
       Object.keys(unset).length > 0 && `unset ${Object.keys(unset).join(", ")}`,
     ]
       .filter(Boolean)

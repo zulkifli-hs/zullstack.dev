@@ -5,6 +5,7 @@ import { GlassPanel } from "@/components/glass/glass-panel";
 import { Tag } from "@/components/lab/section";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
+import { cloudinarySrc } from "@/lib/images/cloudinary";
 import { formatDate, pick, pickList } from "@/lib/utils";
 import type {
   Article,
@@ -114,7 +115,7 @@ export function ArticleList({
           {article.coverImage?.url && (
             <div className="rounded-concentric border-hairline/60 relative hidden aspect-4/3 w-32 shrink-0 overflow-hidden border sm:block">
               <Image
-                src={article.coverImage.url}
+                src={cloudinarySrc(article.coverImage)}
                 alt=""
                 fill
                 sizes="128px"
@@ -180,7 +181,7 @@ export function TestimonialGrid({
           <div className="border-hairline/60 mt-5 flex items-center gap-3 border-t pt-4">
             {testimonial.avatar?.url && (
               <Image
-                src={testimonial.avatar.url}
+                src={cloudinarySrc(testimonial.avatar)}
                 alt=""
                 width={36}
                 height={36}

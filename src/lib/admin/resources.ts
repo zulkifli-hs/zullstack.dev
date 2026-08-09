@@ -12,6 +12,7 @@ import {
   Testimonial,
 } from "@/lib/models";
 import {
+  GALLERY_DISPLAYS,
   LIFECYCLES,
   LINK_ACCESS,
   LINK_KINDS,
@@ -95,11 +96,32 @@ export const RESOURCES: Record<ResourceKey, ResourceDef> = {
 
       { name: "coverImage", label: "Cover image", type: "image", group: "Media" },
       {
+        name: "galleryDisplay",
+        label: "Gallery display",
+        type: "select",
+        options: GALLERY_DISPLAYS,
+        required: true,
+        group: "Media",
+        help: "Grouped splits the gallery into named sections. Leave it flat unless there are enough screenshots that sections help.",
+      },
+      {
+        name: "galleryGroups",
+        label: "Gallery groups",
+        type: "repeater",
+        group: "Media",
+        addLabel: "Add group",
+        help: "Only used when display is grouped. Sections appear in the order their first image does.",
+        itemFields: [
+          { name: "key", label: "Key", type: "text", required: true, help: "Short id, e.g. web." },
+          { name: "label", label: "Label", type: "localized-text", wide: true },
+        ],
+      },
+      {
         name: "gallery",
         label: "Gallery",
         type: "gallery",
         group: "Media",
-        help: "Screenshots of anything that cannot be reached publicly. Mixed aspect ratios are fine — the page lays each one out at its real shape.",
+        help: "Screenshots of anything that cannot be reached publicly. Crop, size and group each one — the preview shows exactly what visitors will see.",
       },
 
       {
