@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { GlassPanel } from "@/components/glass/glass-panel";
 import { Tag } from "@/components/lab/section";
+import { ProjectCoverFallback } from "@/components/sections/project-cover-fallback";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
@@ -42,9 +43,13 @@ export function ProjectGrid({
           >
             {/* The cover is a child, so it paints *on top of* the glass rather
                 than through it — the card reads as a photo above a frosted body,
-                which is the shape Apple uses for media cards. */}
-            {project.coverImage?.url && (
-              <div className="border-hairline/60 relative aspect-16/9 border-b">
+                which is the shape Apple uses for media cards.
+
+                Always rendered, even with no image: a grid where some cards open
+                on media and others on a heading reads as broken rather than as
+                varied, and most of this work has no public screenshot to show. */}
+            <div className="border-hairline/60 relative aspect-16/9 border-b">
+              {project.coverImage?.url ? (
                 <Image
                   src={cloudinarySrc(project.coverImage)}
                   alt={project.coverImage.alt?.[locale] ?? ""}
@@ -55,8 +60,14 @@ export function ProjectGrid({
                   sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
-              </div>
-            )}
+              ) : (
+                <ProjectCoverFallback
+                  title={pick(project.title, locale)}
+                  seed={project.slug}
+                  className="absolute inset-0"
+                />
+              )}
+            </div>
 
             <div className="flex-1 p-6">
               <div className="flex items-start justify-between gap-3">

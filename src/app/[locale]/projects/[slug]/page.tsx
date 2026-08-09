@@ -176,7 +176,11 @@ export default async function ProjectPage({ params }: { params: Params }) {
         ) : null}
         <div>
           <dt className="lab-label">stack</dt>
-          <dd className="tabular mt-1">{project.techStack.length}</dd>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {project.techStack.map((tech) => (
+              <Tag key={tech}>{tech}</Tag>
+            ))}
+          </div>
         </div>
       </GlassPanel>
 
@@ -223,12 +227,6 @@ export default async function ProjectPage({ params }: { params: Params }) {
           </ul>
         </section>
       )}
-
-      <div className="mt-10 flex flex-wrap gap-1.5">
-        {project.techStack.map((tech) => (
-          <Tag key={tech}>{tech}</Tag>
-        ))}
-      </div>
 
       {(links.length > 0 || requestable.length > 0 || internal.length > 0) && (
         <section className="mt-10">
@@ -282,7 +280,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
           screenshots, and anything rendered after them is effectively unread —
           so every fact about the project appears above this point. */}
       {project.gallery.length > 0 && (
-        <section className="border-hairline/60 mt-14 border-t pt-10">
+        <section className="mt-5 border-t border-accent-500 pt-5">
           <h2 className="lab-label text-muted-foreground">{t("gallery")}</h2>
           <p className="text-muted-foreground mt-1 max-w-[68ch] text-xs">{t("galleryHint")}</p>
           <div className="mt-5">
