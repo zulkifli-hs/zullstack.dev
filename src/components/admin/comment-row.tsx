@@ -4,6 +4,8 @@ import { Check, Loader2, ShieldAlert, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { deleteComment, setCommentStatus } from "@/lib/actions/moderation";
 import { cn } from "@/lib/utils";
 
@@ -31,16 +33,11 @@ export function CommentRow({
     <li className="px-4 py-3">
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-sm font-medium">{authorName}</span>
-        <span
-          className={cn(
-            "lab-label rounded-full border px-2 py-0.5",
-            status === "approved" && "border-signal/40 text-signal",
-            status === "pending" && "border-hairline text-muted-foreground",
-            status === "spam" && "border-destructive/40 text-destructive",
-          )}
+        <Badge
+          tone={status === "approved" ? "signal" : status === "spam" ? "destructive" : "neutral"}
         >
           {status}
-        </span>
+        </Badge>
         <span className="text-muted-foreground truncate font-mono text-xs">{articleTitle}</span>
         <span className="text-muted-foreground ml-auto font-mono text-xs">{createdAt}</span>
       </div>
@@ -93,19 +90,17 @@ function Action({
   destructive?: boolean;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
+      size="xs"
       onClick={onClick}
       disabled={pending}
       aria-label={label}
       title={label}
-      className={cn(
-        "text-muted-foreground hover:bg-secondary inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors",
-        destructive ? "hover:text-destructive" : "hover:text-foreground",
-      )}
+      className={cn(destructive && "hover:text-destructive")}
     >
       {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Icon className="size-3.5" />}
       {label}
-    </button>
+    </Button>
   );
 }

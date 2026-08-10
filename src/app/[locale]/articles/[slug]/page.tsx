@@ -11,6 +11,7 @@ import { Tag } from "@/components/lab/section";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/resolve-locale";
 import { routing } from "@/i18n/routing";
+import { cloudinarySrc } from "@/lib/images/cloudinary";
 import { getArticleBySlug, getArticleSlugs } from "@/lib/queries";
 import { formatDate, pick } from "@/lib/utils";
 
@@ -55,7 +56,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
   ]);
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pt-16 pb-8 sm:pt-20">
+    <main className="mx-auto max-w-6xl px-6 pt-16 pb-8 sm:pt-20">
       <Link
         href="/articles"
         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 font-mono text-xs transition-colors"
@@ -88,7 +89,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
         {article.coverImage?.url && (
           <div className="border-hairline/60 relative mt-8 aspect-16/9 overflow-hidden rounded-xl border">
             <Image
-              src={article.coverImage.url}
+              src={cloudinarySrc(article.coverImage)}
               alt={pick(article.title, locale)}
               fill
               priority

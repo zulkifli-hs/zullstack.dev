@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { Card } from "@/components/ui/card";
+
 import { AdminShell } from "@/components/admin/admin-shell";
 import { requireAdmin } from "@/lib/auth-guard";
 import { connectDB } from "@/lib/db";
@@ -63,18 +65,20 @@ export default async function AdminDashboard() {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {counts.map(({ label, href, total, published }) => (
-          <Link
-            key={label}
-            href={href}
-            className="border-hairline bg-card/40 hover:border-ring rounded-xl border p-5 transition-colors"
-          >
+          <Card key={label} tier="md" padding="sm" interactive className="group">
+            {/* Stretched link rather than `as={Link}`: it keeps one anchor for
+                the whole tile (better for screen readers than wrapping) and
+                sidesteps threading typedRoutes through a polymorphic generic. */}
+            <Link href={href} className="absolute inset-0 rounded-[inherit]">
+              <span className="sr-only">{label}</span>
+            </Link>
             <p className="lab-label text-muted-foreground">{label}</p>
             <p className="tabular mt-3 text-2xl font-semibold">{total}</p>
             <p className="text-muted-foreground mt-1 font-mono text-xs">
               {published} published
               {total - published > 0 && ` · ${total - published} draft`}
             </p>
-          </Link>
+          </Card>
         ))}
       </div>
     </AdminShell>

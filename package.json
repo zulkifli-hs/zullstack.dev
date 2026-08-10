@@ -9,10 +9,12 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm build",
+    "migrate:projects": "tsx scripts/migrate-projects.ts",
+    "check": "pnpm typecheck && pnpm lint && pnpm gen:lens --check && pnpm build",
     "create-admin": "tsx scripts/create-admin.ts",
     "cleanup-test-data": "tsx scripts/cleanup-test-data.ts",
-    "seed:dummy": "tsx scripts/seed-dummy.ts"
+    "seed:dummy": "tsx scripts/seed-dummy.ts",
+    "gen:lens": "tsx scripts/gen-lens-maps.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -25,7 +27,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.28.0",
     "mongoose": "^9.9.1",
-    "motion": "^12.43.0",
+    "motion": "^13.0.0",
     "next": "16.3.0",
     "next-intl": "^4.13.5",
     "next-themes": "^0.4.6",

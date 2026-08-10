@@ -116,13 +116,19 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* One radius vocabulary for the whole system.
+     These are absolute rather than derived from a single `--radius` multiplier
+     so that `rounded-lg` *means* the glass control radius. Surface tiers below
+     point at these, which is what lets a tier own an element's radius and
+     removes the competing `rounded-*` values from component class strings. */
+  --radius-xs: 0.375rem; /*  6px — menu items, tags */
+  --radius-sm: 0.5rem; /*  8px — xs controls */
+  --radius-md: 0.625rem; /* 10px — sm controls, inputs */
+  --radius-lg: 0.875rem; /* 14px — default controls, badges */
+  --radius-xl: 1.125rem; /* 18px — cards, popovers, menus */
+  --radius-2xl: 1.5rem; /* 24px — dialogs, sheets, hero */
+  --radius-3xl: 2rem; /* 32px — page-level containers */
+  --radius-4xl: 2.5rem;
 }
 
 :root {
@@ -155,26 +161,85 @@
   --signal: var(--color-accent-700);
   --hairline: var(--color-ink-200);
 
-  /* Glass material. One place to dial the entire system.
+  /* ── Glass, namespace 1 of 4: what the material IS ───────────────────────
+     Theme-dependent. Overridden wholesale by [data-theme="dark"].
+
      Apple walked Liquid Glass transparency back twice (iOS 26 beta 3, then the
      iOS 27 transparency slider). Both corrections moved toward opacity, so
-     these defaults sit deliberately conservative. */
-  --glass-blur: 14px; /* >16px stops reading as glass and starts reading as fog */
-  --glass-lens-blur: 5px; /* refracted surfaces need a crisp backdrop to bend */
-  --glass-sat: 180%; /* the knob that separates "Apple" from "cheap frosted div" */
-  --glass-bright: 1.06;
-  --glass-tint: color-mix(in oklab, oklch(1 0 0) 62%, transparent);
-  --glass-rim: oklch(1 0 0 / 0.85);
-  --glass-rim-mid: oklch(1 0 0 / 0.28);
-  --glass-shadow: oklch(0.22 0.02 265 / 0.14);
-  --glass-inner-top: oklch(1 0 0 / 0.7);
-  --glass-inner-bottom: oklch(1 0 0 / 0.18);
-  --glass-inner-glow: oklch(1 0 0 / 0.05);
-  --glass-sheen: oklch(1 0 0 / 0.45);
-  --glass-radius: 1.375rem;
+     these sit deliberately conservative.
 
-  --grid-color: oklch(0.578 0.227 264.4 / 0.07);
+     Everything here is a *base* value. Size tiers scale it, degradation blocks
+     clamp it, and only the `glass` utility multiplies the two together. Nothing
+     downstream reads these directly. */
+  --glass-blur-base: 10px;
+  --glass-lens-blur-base: 4px;
+  --glass-sat-base: 180%; /* the knob that separates "Apple" from "cheap frosted div" */
+  --glass-bright-base: 1.06;
+
+  /* The colour the tint is mixed FROM, and the alpha before tier scaling. */
+  --glass-base: oklch(1 0 0);
+  --glass-tint-base: 58%;
+
+  /* Card tint, as a factor on the base — and genuinely theme-dependent, which
+     is why it lives here and not in the tier.
+     The tint exists to guarantee legibility over an unknown backdrop, and how
+     much it has to do differs by theme. Dark mode paints light text over a dark
+     tint, so the tint carries most of the contrast. Light mode paints dark text
+     over a *white* tint on an already-light backdrop, where extra opacity buys
+     almost no contrast and costs all of the transparency — at 58% the card is
+     simply a white box. Both values land the card near 46% alpha. */
+  --glass-tint-card: 0.8;
+
+  /* Rim, bevel and sheen all derive from one colour + per-part alphas, so a
+     high-contrast or forced-colors mode only has to swap the colour. */
+  --glass-rim-color: oklch(1 0 0);
+  --glass-rim-a: 0.85;
+  --glass-rim-mid-a: 0.28;
+  --glass-inner-top-a: 0.7;
+  --glass-inner-bottom-a: 0.18;
+  --glass-inner-glow: oklch(1 0 0 / 0.05);
+  --glass-sheen-color: oklch(1 0 0);
+  --glass-sheen-a: 0.45;
+  --glass-shadow-color: oklch(0.22 0.02 265);
+  --glass-shadow-a: 0.14;
+
+  /* ── Namespace 2 of 4: what the DEVICE allows ────────────────────────────
+     The only knobs the degradation blocks touch. Because every magnitude is
+     clamped through these, six of the seven degradation blocks need no
+     selectors at all — they just reset tokens. */
+  --glass-blur-max: 40px;
+  --glass-tint-min: 0%;
+  --glass-sat-max: 300%;
+  --glass-shadow-scale: 1;
+  --glass-sheen-scale: 1;
+  --glass-grain-scale: 1;
+  --glass-lift-scale: 1;
+
+  /* Space toggle. Empty = backdrop-filter enabled. Set to `initial` and the
+     whole declaration becomes invalid at computed-value time, so the property
+     falls back to `none`.
+     `blur(0px)` is NOT an alternative — it still allocates a compositor layer
+     and still snapshots the backdrop every frame. */
+  --glass-fx-off: ;
+
+  /* Live user controls, written on <html> by the glass panel (and by the
+     blocking script before first paint). Default 1 = untouched. These sit
+     UPSTREAM of the degradation clamps on purpose: a user preference can shape
+     the material, but `prefers-contrast: more` and friends still win, because
+     they clamp the result rather than the input. */
+  --glass-user-blur: 1;
+  --glass-user-tint: 1;
+  --glass-user-sat: 1;
+  --glass-user-bright: 1;
+  --glass-user-rim: 1;
+
+  /* The substrate is not decoration — it is the thing the lens bends, and the
+     only reason refraction is visible at all. At the previous 0.07 it did not
+     survive its own blur, so panels read as tinted boxes no matter how correct
+     the displacement map was. */
+  --grid-color: oklch(0.578 0.227 264.4 / 0.16);
   --grid-size: 24px;
+  --grid-line: 1px;
 }
 
 [data-theme="dark"] {
@@ -203,16 +268,22 @@
   --signal: var(--color-accent-250); /* 13.24:1 on ink-950 — the green finally works */
   --hairline: var(--color-ink-800);
 
-  --glass-tint: color-mix(in oklab, var(--color-ink-900) 46%, transparent);
-  --glass-rim: oklch(1 0 0 / 0.28);
-  --glass-rim-mid: oklch(1 0 0 / 0.08);
-  --glass-shadow: oklch(0 0 0 / 0.45);
-  --glass-inner-top: oklch(1 0 0 / 0.4);
-  --glass-inner-bottom: oklch(1 0 0 / 0.12);
-  --glass-inner-glow: oklch(1 0 0 / 0.05);
-  --glass-sheen: oklch(1 0 0 / 0.22);
+  /* Only namespace 1 changes with the theme — the device clamps and the tier
+     scalars are theme-independent by design. */
+  --glass-base: var(--color-ink-900);
+  --glass-tint-base: 44%;
+  --glass-tint-card: 1.05;
 
-  --grid-color: oklch(0.72 0.144 264.4 / 0.09);
+  --glass-rim-a: 0.28;
+  --glass-rim-mid-a: 0.08;
+  --glass-inner-top-a: 0.4;
+  --glass-inner-bottom-a: 0.12;
+  --glass-inner-glow: oklch(1 0 0 / 0.05);
+  --glass-sheen-a: 0.22;
+  --glass-shadow-color: oklch(0 0 0);
+  --glass-shadow-a: 0.45;
+
+  --grid-color: oklch(0.72 0.144 264.4 / 0.2);
 }
 
 @layer base {
@@ -252,26 +323,170 @@
   }
 }
 
-/* ── Glass material ──────────────────────────────────────────────────────────
-   Real Liquid Glass is never one backdrop-filter. It is, at minimum:
-     1. a tint fill          2. a blurred+saturated backdrop
-     3. a bevel (inset shadows — this is what sells thickness, not the blur)
-     4. a gradient rim light 5. a specular sheen  6. grain
-   Layers 5 and 6 are pseudo-elements on <GlassPanel>, not baked in here, so
-   that a bare `glass` utility stays composable.
+@theme {
+  /* Apple's standard easing. The overshoot curve is for release, where a
+     control settling back should feel sprung rather than damped. */
+  --ease-glass: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-glass-out: linear(0, 0.55 8%, 0.92 20%, 1.04 32%, 1 46%, 1);
+}
+
+/* Registered so it can be transitioned. Unregistered custom properties
+   interpolate as discrete strings, which would make the lift snap. */
+@property --lift {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+/* ── Namespace 3 of 4: how big this thing is ─────────────────────────────────
+   Tiers declare geometry and scalars only — never a colour, never a filter.
+   `glass` / `glass-flat` are the only consumers.
+
+   Apple: larger glass "casts deeper, richer shadows, has more pronounced
+   lensing", so blur and shadow rise with size. Tint moves the *other* way: a
+   28px control has too little area to establish material and needs a denser
+   tint to stay legible, where a 600px panel at that alpha reads as fog.
+   ────────────────────────────────────────────────────────────────────────── */
+@utility surface-xs {
+  --surface-radius: var(--radius-sm);
+  --tier-blur: 0.5;
+  --tier-tint: 1.3;
+  --tier-rim: 1.2;
+  --tier-shadow-y: 1px;
+  --tier-shadow-blur: 3px;
+  --tier-shadow-spread: -1px;
+  --tier-glow: 6px;
+  --tier-lens: url("#zl-lens-xs");
+}
+
+@utility surface-sm {
+  --surface-radius: var(--radius-md);
+  --tier-blur: 0.8;
+  --tier-tint: 1.15;
+  --tier-rim: 1.1;
+  --tier-shadow-y: 2px;
+  --tier-shadow-blur: 8px;
+  --tier-shadow-spread: -3px;
+  --tier-glow: 10px;
+  --tier-lens: url("#zl-lens-sm");
+}
+
+@utility surface-md {
+  --surface-radius: var(--radius-xl);
+  --tier-blur: 1.2;
+  --tier-tint: 1;
+  --tier-rim: 1;
+  --tier-shadow-y: 8px;
+  --tier-shadow-blur: 24px;
+  --tier-shadow-spread: -6px;
+  --tier-glow: 18px;
+  --tier-lens: url("#zl-lens-md");
+  /* Overlays anchor submenus and popups that must escape the box, and
+     `contain: paint` would clip them. Leaf controls keep containment. */
+  --surface-contain: none;
+}
+
+/* Content cards.
+   Sits between `md` and `lg` in blur, but deliberately *above* both in tint.
+   The tier scale otherwise moves tint inversely to size, and a card breaks that
+   rule for one reason: it is the only surface on the site that carries running
+   body copy. An overlay holds labels for two seconds; a card holds a paragraph
+   someone actually reads, and 400-weight text is where glass fails first. */
+@utility surface-card {
+  --surface-radius: var(--radius-xl);
+  /* Low on purpose. On the lens path this multiplies `--glass-lens-blur-base`
+     (4px), so a card blurs by ~2.8px — and that number is set by what has to
+     survive it. A 1px grid line under 6px of blur spreads to ~12px at a twelfth
+     of its amplitude, i.e. gone, and a lens with nothing legible behind it to
+     bend is indistinguishable from a tinted box. Refraction carries the
+     material here; blur only softens what is left.
+     Browsers without `backdrop-filter: url()` fall back to 3px of plain blur,
+     where the tint is doing most of the work anyway. */
+  --tier-blur: 0.3;
+  --tier-tint: var(--glass-tint-card, 1);
+  --tier-rim: 1;
+  --tier-shadow-y: 10px;
+  --tier-shadow-blur: 30px;
+  --tier-shadow-spread: -8px;
+  --tier-glow: 22px;
+  --tier-lens: url("#zl-lens-card");
+  /* Unlike `md`, nothing escapes a card, so it keeps `contain: paint`. */
+}
+
+@utility surface-lg {
+  --surface-radius: var(--radius-2xl);
+  --tier-blur: 1.8;
+  --tier-tint: 0.92;
+  --tier-rim: 0.95;
+  --tier-shadow-y: 20px;
+  --tier-shadow-blur: 56px;
+  --tier-shadow-spread: -12px;
+  --tier-glow: 32px;
+  --tier-lens: url("#zl-lens-lg");
+}
+
+/* ── The material ────────────────────────────────────────────────────────────
+   Real Liquid Glass is never one backdrop-filter. It is a tint fill, a blurred
+   and saturated backdrop, an inset bevel (which sells thickness more than the
+   blur does), a gradient rim light, a specular sheen and grain.
+
+   CRITICAL: every derived token is declared HERE, not at :root. Custom
+   properties inherit their already-substituted value, so a token declared at
+   :root that reads `var(--tier-blur)` would resolve against :root's value and
+   inherit down frozen — making every tier silently a no-op.
    ────────────────────────────────────────────────────────────────────────── */
 @utility glass {
   position: relative;
   isolation: isolate;
-  /* Bounds the compositor's paint region. The single highest-impact perf lever
-     for backdrop-filter — without it the compositor reconsiders the whole page. */
-  contain: paint;
-  border-radius: var(--glass-radius);
+  contain: var(--surface-contain, paint);
+  border-radius: var(--surface-radius, var(--radius-xl));
   border: 1px solid transparent;
-  /* Double-layer background-clip: the tint paints inside the padding box while
-     a gradient paints only in the border box. A flat 1px white border is the
-     tell that something is not Apple glass — real rim light varies around the
-     perimeter. */
+
+  --glass-blur: min(
+    calc(var(--glass-blur-base) * var(--tier-blur, 1) * var(--glass-user-blur, 1)),
+    var(--glass-blur-max)
+  );
+  --glass-sat: min(
+    calc(var(--glass-sat-base) * var(--glass-user-sat, 1)),
+    var(--glass-sat-max)
+  );
+
+  /* Lifting drops the tint — that is what "becomes glass" actually looks like. */
+  --glass-tint-alpha: clamp(
+    var(--glass-tint-min),
+    calc(
+      var(--glass-tint-base) * var(--tier-tint, 1) * var(--nested-tint, 1) *
+        var(--glass-user-tint, 1) * (1 - 0.2 * var(--lift))
+    ),
+    100%
+  );
+  --glass-rim-mul: calc(
+    var(--tier-rim, 1) * var(--glass-user-rim, 1) * (1 + 0.5 * var(--lift))
+  );
+
+  --glass-tint: color-mix(in oklab, var(--glass-base) var(--glass-tint-alpha), transparent);
+  --glass-rim: color-mix(
+    in oklab,
+    var(--glass-rim-color) calc(var(--glass-rim-a) * var(--glass-rim-mul) * 100%),
+    transparent
+  );
+  --glass-rim-mid: color-mix(
+    in oklab,
+    var(--glass-rim-color) calc(var(--glass-rim-mid-a) * var(--glass-rim-mul) * 100%),
+    transparent
+  );
+  --glass-sheen: color-mix(
+    in oklab,
+    var(--glass-sheen-color) calc(var(--glass-sheen-a) * var(--glass-sheen-scale) * 100%),
+    transparent
+  );
+
+  /* Published for children — Apple's containerConcentric: inner = outer − pad. */
+  --concentric-radius: max(calc(var(--surface-radius, 1.125rem) - var(--surface-pad, 0px)), 2px);
+
+  /* Double-layer background-clip: tint paints inside the padding box, the rim
+     gradient only in the border box. A flat 1px white border is the tell that
+     something is not Apple glass — real rim light varies around the perimeter. */
   background:
     linear-gradient(var(--glass-tint), var(--glass-tint)) padding-box,
     linear-gradient(
@@ -282,51 +497,206 @@
         var(--glass-rim) 100%
       )
       border-box;
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat))
-    brightness(var(--glass-bright));
+
+  backdrop-filter: var(--glass-fx-off) blur(var(--glass-blur)) saturate(var(--glass-sat))
+    brightness(calc(var(--glass-bright-base) * var(--glass-user-bright, 1)));
+
   box-shadow:
-    inset 0 1px 1px 0 var(--glass-inner-top),
-    inset 0 -1px 1px 0 var(--glass-inner-bottom),
-    inset 0 0 24px 0 var(--glass-inner-glow),
-    0 8px 32px -8px var(--glass-shadow);
+    inset 0 1px 1px 0
+      color-mix(
+        in oklab,
+        var(--glass-rim-color) calc(var(--glass-inner-top-a) * var(--glass-rim-mul) * 100%),
+        transparent
+      ),
+    inset 0 -1px 1px 0
+      color-mix(in oklab, var(--glass-rim-color) calc(var(--glass-inner-bottom-a) * 100%), transparent),
+    inset 0 0 var(--tier-glow, 24px) 0 var(--glass-inner-glow),
+    0 var(--tier-shadow-y, 8px) var(--tier-shadow-blur, 32px) var(--tier-shadow-spread, -8px)
+      color-mix(
+        in oklab,
+        var(--glass-shadow-color)
+          calc(var(--glass-shadow-a) * var(--glass-shadow-scale) * (1 + 0.9 * var(--lift)) * 100%),
+        transparent
+      );
 }
 
-/* True refraction, layered on top of `glass`. Chromium only — the @supports
-   query is load-bearing, not defensive: Firefox may fail to paint the element
-   rather than ignoring an unsupported backdrop-filter URL reference.
-   Reserve this for 1-2 hero elements; it is the most expensive thing here. */
+/* True edge refraction. Chromium only — Safari has never shipped
+   `backdrop-filter: url()` (WebKit 245510) and Firefox can satisfy the
+   @supports test then fail to paint, hence the Gecko-only negative probe.
+   That probe is a UA sniff; it is here because the alternative is a blank
+   element in Firefox. */
 @utility glass-lens {
-  @supports (backdrop-filter: url("#zl-lens")) {
-    /* Filter ORDER is the whole effect. Displacement must run before the blur:
-       bend the crisp grid lines first, then soften. Blurring first destroys the
-       straight edges the lens is supposed to visibly bend, and the result reads
-       as "a slightly brighter panel" rather than as glass.
-       Blur is also much lower here than on plain `glass` for the same reason. */
-    backdrop-filter: url("#zl-lens") blur(var(--glass-lens-blur)) saturate(var(--glass-sat))
-      brightness(var(--glass-bright));
+  @supports (backdrop-filter: url("#zl-lens")) and (not (-moz-appearance: none)) {
+    backdrop-filter: var(--glass-fx-off) var(--tier-lens)
+      blur(
+        calc(var(--glass-lens-blur-base) * var(--tier-blur, 1) * var(--glass-user-blur, 1))
+      )
+      saturate(var(--glass-sat))
+      brightness(calc(var(--glass-bright-base) * var(--glass-user-bright, 1)));
   }
 }
 
-/* Cheaper variant for repeated surfaces (cards in a grid). No backdrop-filter
-   at all — mobile handles only ~3-5 blur surfaces before frames drop. */
+/* Component-specific lens geometry.
+   A displacement map is authored at a size and shape; a pill is not a square
+   and a switch groove is not a dome, so those get their own maps rather than
+   stretching a generic one. */
+@utility lens-pill {
+  --tier-lens: url("#zl-lens-pill");
+}
+@utility lens-switch {
+  --tier-lens: url("#zl-lens-switch");
+}
+@utility lens-thumb {
+  --tier-lens: url("#zl-lens-thumb");
+}
+@utility lens-card {
+  --tier-lens: url("#zl-lens-card");
+}
+
+/* Cards drop refraction on phones, and keep plain glass.
+   Measured at 390x844: cards are full-width and tall, so five live surfaces
+   cover 68% of the viewport — well past the ~55% budget, and every one of those
+   pixels runs an SVG displacement pass at DPR 3. The lens is also least visible
+   here: a 25px bevel on a full-width card is a thin band at the extreme edge.
+   Navigation capsules keep theirs — they are small, they are the surfaces the
+   design is built around, and two of them cost almost nothing.
+
+   Restating the whole filter rather than clearing `--tier-lens`: setting that
+   token to `none` makes the declaration invalid at computed-value time, which
+   drops backdrop-filter entirely instead of falling back to blur. */
+@media (width < 40rem) {
+  [data-surface="lens"].surface-card {
+    backdrop-filter: var(--glass-fx-off) blur(var(--glass-blur)) saturate(var(--glass-sat))
+      brightness(calc(var(--glass-bright-base) * var(--glass-user-bright, 1)));
+  }
+}
+
+/* Content layer: same vocabulary, no backdrop-filter, higher tint floor.
+   This is what cards and rows use — Apple is explicit that glass does not
+   belong on the content layer. */
 @utility glass-flat {
   position: relative;
   isolation: isolate;
-  border-radius: var(--glass-radius);
-  border: 1px solid var(--hairline);
-  background: color-mix(in oklab, var(--card) 82%, transparent);
-  box-shadow: 0 1px 2px 0 var(--glass-shadow);
+  border-radius: var(--surface-radius, var(--radius-xl));
+  border: 1px solid transparent;
+
+  --glass-base: var(--card);
+  --glass-tint-alpha: clamp(
+    max(var(--glass-tint-min), 82%),
+    calc(88% * var(--tier-tint, 1)),
+    100%
+  );
+  --glass-rim-mul: calc(var(--tier-rim, 1) * (1 + 0.5 * var(--lift)));
+
+  --glass-tint: color-mix(in oklab, var(--glass-base) var(--glass-tint-alpha), transparent);
+  --glass-rim: color-mix(
+    in oklab,
+    var(--glass-rim-color) calc(var(--glass-rim-a) * var(--glass-rim-mul) * 55%),
+    transparent
+  );
+  --glass-rim-mid: var(--hairline);
+  --glass-sheen: color-mix(
+    in oklab,
+    var(--glass-sheen-color) calc(var(--glass-sheen-a) * var(--glass-sheen-scale) * 55%),
+    transparent
+  );
+  --concentric-radius: max(calc(var(--surface-radius, 1.125rem) - var(--surface-pad, 0px)), 2px);
+
+  background:
+    linear-gradient(var(--glass-tint), var(--glass-tint)) padding-box,
+    linear-gradient(140deg, var(--glass-rim) 0%, var(--glass-rim-mid) 45%, var(--glass-rim) 100%)
+      border-box;
+
+  box-shadow:
+    inset 0 1px 0 0
+      color-mix(in oklab, var(--glass-rim-color) calc(var(--glass-inner-top-a) * 35%), transparent),
+    0 var(--tier-shadow-y, 2px) var(--tier-shadow-blur, 8px) var(--tier-shadow-spread, -3px)
+      color-mix(
+        in oklab,
+        var(--glass-shadow-color) calc(var(--glass-shadow-a) * var(--glass-shadow-scale) * 60%),
+        transparent
+      );
 }
 
-/* Specular highlight. Screen-blended so it adds light rather than washing the
-   tint out. `--mx`/`--my` default to the top-left rest position and are driven
-   by pointer position when <SpecularLayer> is used — the closest web analogue
-   to Apple's gyroscope-tracked rim light. */
+/* Text fields. Apple does not put glass on text fields in the content layer —
+   legibility beats material. They join the family through the rim highlight
+   rather than the blur. */
+@utility field-surface {
+  --surface-radius: var(--radius-md);
+  border-radius: var(--surface-radius);
+  background: var(--card);
+  box-shadow:
+    inset 0 0 0 1px var(--input),
+    inset 0 1px 0 0
+      color-mix(in oklab, var(--glass-rim-color) calc(var(--glass-inner-top-a) * 35%), transparent);
+  transition: box-shadow 150ms var(--ease-glass);
+}
+
+/* Apple's containerConcentric, consumer side. */
+@utility rounded-concentric {
+  border-radius: var(--concentric-radius, var(--radius-md));
+}
+
+/* A nested container re-publishes, so concentricity survives two levels. */
+@utility surface-concentric {
+  --surface-radius: var(--concentric-radius, var(--radius-lg));
+}
+
+/* ── Namespace 4 of 4: interaction ───────────────────────────────────────────
+   Controls "lift into glass". Two hard constraints:
+
+   1. `backdrop-filter` never animates or toggles. Doing so creates and destroys
+      a compositor layer per hover — visible pop plus GC churn. The lift is sold
+      entirely by tint dropping, rim brightening and shadow deepening.
+   2. `transform` transitions separately from `--lift`. Deriving transform from
+      var(--lift) would recompute style on the main thread every frame; split
+      gives one compositor transition and one cheap style transition.
+   ────────────────────────────────────────────────────────────────────────── */
+@utility lift {
+  transition:
+    --lift 200ms var(--ease-glass),
+    transform 200ms var(--ease-glass-out),
+    box-shadow 200ms var(--ease-glass);
+
+  /* Guarded so touch devices don't get a stuck hover state after tapping. */
+  @media (hover: hover) {
+    &:hover {
+      --lift: 1;
+      transform: translateY(calc(-1px * var(--glass-lift-scale)))
+        scale(calc(1 + 0.015 * var(--glass-lift-scale)));
+    }
+  }
+
+  &:focus-visible {
+    --lift: 1;
+  }
+
+  &:active {
+    --lift: 0.4;
+    transform: scale(calc(1 - 0.02 * var(--glass-lift-scale)));
+    transition-duration: 80ms;
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    --lift: 0;
+    transform: none;
+  }
+}
+
+/* Specular highlight. `--mx`/`--my` track the pointer, `--px`/`--py`/`--press`
+   the touch point — Apple's material "illuminates from within, starting right
+   under your fingertips". */
 @utility glass-sheen {
   --mx: 30%;
   --my: 0%;
+  opacity: calc((0.15 + 0.85 * var(--lift)) * var(--glass-sheen-scale));
   background:
+    radial-gradient(
+      120px circle at var(--px, 50%) var(--py, 50%),
+      color-mix(in oklab, var(--glass-sheen) calc(var(--press, 0) * 90%), transparent),
+      transparent 70%
+    ),
     radial-gradient(
       220px circle at var(--mx) var(--my),
       color-mix(in oklab, var(--glass-sheen) 62%, transparent),
@@ -334,12 +704,13 @@
     ),
     linear-gradient(140deg, var(--glass-sheen) 0%, transparent 55%);
   mix-blend-mode: screen;
+  transition: opacity 200ms var(--ease-glass);
 }
 
 /* Fine grain. Blur gradients band badly on wide flat surfaces; a few percent of
    noise hides it and reads as a real material rather than a CSS filter. */
 @utility glass-grain {
-  opacity: 0.035;
+  opacity: calc(0.035 * var(--glass-grain-scale));
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -347,13 +718,22 @@
 /* ── Lab motifs ──────────────────────────────────────────────────────────── */
 
 /* Blueprint grid. Glass belongs over THIS, not over photography: straight grid
-   lines visibly bending at the panel rim are the proof the surface is a lens
+   lines visibly bending at a panel rim are the proof the surface is a lens
    rather than a blur. Photos hide the effect entirely. */
+/* Line weight is a variable because it is load-bearing, not styling.
+   Blur destroys a thin line far faster than a thick one: a 1px line under 2.8px
+   of blur keeps roughly a seventh of its amplitude, which at these alphas lands
+   under 3/255 — invisible, and a lens with nothing legible to bend is a tinted
+   box. 1.5px survives, and reads no heavier because the alpha compensates. */
 @utility lab-grid {
   background-image:
-    linear-gradient(var(--grid-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    linear-gradient(var(--grid-color) var(--grid-line), transparent var(--grid-line)),
+    linear-gradient(90deg, var(--grid-color) var(--grid-line), transparent var(--grid-line));
   background-size: var(--grid-size) var(--grid-size);
+  /* background-image:
+    linear-gradient(var(--grid-color) 0.5px, transparent 0.5px),
+    linear-gradient(90deg, var(--grid-color) 0.5px, transparent 0.5px);
+  background-size: 40px 40px; */
 }
 
 @utility lab-dots {
@@ -373,68 +753,99 @@
 }
 
 /* Apple's scroll edge effect: the blur fades out downward instead of ending on
-   a hard line. Highest legibility-per-byte in the whole system. */
+   a hard line. Highest legibility-per-byte in the system.
+   Steeper than the visual midpoint so that anchored menus opening below a
+   sticky header start where the header's blur has already fallen to ~0. */
 @utility scroll-edge {
-  -webkit-mask-image: linear-gradient(to bottom, oklch(0 0 0) 0 55%, transparent 100%);
-  mask-image: linear-gradient(to bottom, oklch(0 0 0) 0 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, oklch(0 0 0) 0 45%, transparent 100%);
+  mask-image: linear-gradient(to bottom, oklch(0 0 0) 0 45%, transparent 100%);
 }
 
-/* ── Progressive enhancement + accessibility ─────────────────────────────────
-   Ordered least- to most-overriding. Every block below is a real degradation
-   path, not decoration: glass designs fail quietly and this is where.
+/* ── No glass on glass ───────────────────────────────────────────────────────
+   Apple's rule, and the reason for it is mechanical: "glass cannot sample other
+   glass". Nested backdrop-filters also multiply compositor snapshot cost.
+
+   Mechanised rather than left to review discipline. [data-surface][data-surface]
+   is specificity (0,2,0), which beats any single utility class.
+   ────────────────────────────────────────────────────────────────────────── */
+[data-surface="glass"] [data-surface="glass"],
+[data-surface="glass"] [data-surface="lens"],
+[data-surface="lens"] [data-surface="glass"],
+[data-surface="lens"] [data-surface="lens"] {
+  --glass-fx-off: initial;
+  /* Compensate for the lost blur so the nested surface stays readable.
+     This is its OWN token, not `--tier-tint`. The guard's specificity (0,2,0)
+     beats any utility class, so writing `--tier-tint` here would silently
+     overrule a variant that sets its own — a `glassProminent` button dropped
+     inside a card would come out *less* prominent than outside it. Multiplying
+     a separate factor composes instead of clobbering: the prominent button ends
+     up fully opaque, which is what a primary action inside glass should be. */
+  --nested-tint: 1.35;
+}
+
+/* ── Degradation ─────────────────────────────────────────────────────────────
+   Six of these seven blocks reset tokens and touch no selectors at all, because
+   every magnitude in the material runs through a :root clamp. Any component
+   that renders data-surface is covered the moment it exists — there is nothing
+   to remember and nothing to add here.
    ────────────────────────────────────────────────────────────────────────── */
 
-/* Firefox and anything else without backdrop-filter gets an honest solid. */
+/* Firefox, and anything else without backdrop-filter. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass {
-    background: color-mix(in oklab, var(--card) 88%, transparent);
+  :root {
+    --glass-fx-off: initial;
+    --glass-tint-min: 88%;
   }
 }
 
-/* Low-power / low-refresh devices: drop the blur entirely. */
+/* Low-power / low-refresh devices. */
 @media (update: slow) {
-  .glass {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background: color-mix(in oklab, var(--card) 92%, transparent);
+  :root {
+    --glass-fx-off: initial;
+    --glass-tint-min: 92%;
+    --glass-grain-scale: 0;
   }
 }
 
-/* Apple's "Reduce Transparency" -> frostier, obscures more of what is behind.
+/* Apple's "Reduce Transparency" — frostier, obscures more of what is behind.
    NOTE: Safari does not implement this media query at all, which is why the
    site also ships a manual toggle writing [data-transparency="reduced"]. */
 @media (prefers-reduced-transparency: reduce) {
   :root {
-    --glass-blur: 0px;
-    --glass-tint: color-mix(in oklab, var(--card) 96%, transparent);
+    --glass-fx-off: initial;
+    --glass-tint-min: 96%;
+    --glass-sheen-scale: 0;
   }
 }
 
 [data-transparency="reduced"] {
-  --glass-blur: 0px;
-  --glass-tint: color-mix(in oklab, var(--card) 96%, transparent);
-  --glass-sheen: transparent;
+  --glass-fx-off: initial;
+  --glass-tint-min: 96%;
+  --glass-sheen-scale: 0;
 }
 
-[data-transparency="reduced"] .glass {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-/* Apple's "Increase Contrast" -> predominantly black or white with a
+/* Apple's "Increase Contrast" — predominantly black or white with a
    contrasting border. */
 @media (prefers-contrast: more) {
-  .glass {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background: var(--card);
-    border-color: var(--foreground);
-    box-shadow: none;
+  :root {
+    --glass-fx-off: initial;
+    --glass-tint-min: 100%;
+    --glass-rim-color: var(--foreground);
+    --glass-rim-a: 1;
+    --glass-rim-mid-a: 1;
+    --glass-shadow-scale: 0;
+    --glass-sheen-scale: 0;
+    --glass-grain-scale: 0;
   }
 }
 
-/* Apple's "Reduce Motion" -> disables elastic properties. */
+/* Apple's "Reduce Motion" — disables elastic properties. The colour and shadow
+   state change still happens, instantly. */
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --glass-lift-scale: 0;
+  }
+
   *,
   *::before,
   *::after {
@@ -446,12 +857,26 @@
 }
 
 @media (forced-colors: active) {
-  .glass,
-  .glass-flat {
-    background: Canvas;
-    border: 1px solid CanvasText;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: none;
+  :root {
+    --glass-fx-off: initial;
+    --glass-base: Canvas;
+    --glass-tint-min: 100%;
+    --glass-rim-color: CanvasText;
+    --glass-shadow-scale: 0;
+    --glass-sheen-scale: 0;
+    --glass-grain-scale: 0;
+  }
+
+  /* The residual that tokens cannot reach: forced-colors overrides
+     background-color but not background-image, and does not touch blend modes. */
+  :where([data-surface]) {
+    background-image: none !important;
+    background-color: Canvas !important;
+    border-color: CanvasText !important;
+    box-shadow: none !important;
+  }
+
+  :where([data-sheen], [data-grain]) {
+    display: none !important;
   }
 }

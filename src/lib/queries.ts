@@ -1,11 +1,19 @@
 import "server-only";
 
+import {
+  DEFAULT_GALLERY_COLS,
+  DEFAULT_GALLERY_ROWS,
+  SPAN_TO_COLS,
+  type GallerySpan,
+} from "./content-enums";
 import { connectDB, isDatabaseConfigured } from "./db";
+import { stripPrivateLinkUrls } from "./project";
 import {
   Article,
   Experience,
   MentoringTrack,
   OpenSource,
+  Partner,
   Project,
   Resource,
   Snippet,
@@ -17,7 +25,10 @@ import type {
   Experience as TExperience,
   MentoringTrack as TMentoringTrack,
   OpenSourceProject as TOpenSource,
+  Partner as TPartner,
   Project as TProject,
+  ProjectDetail as TProjectDetail,
+  ProjectLink,
   Resource as TResource,
   SiteConfig as TSiteConfig,
   Snippet as TSnippet,
@@ -97,23 +108,160 @@ export async function getSiteConfig(): Promise<TSiteConfig | null> {
   return doc ? serialize<TSiteConfig>(doc) : null;
 }
 
-export async function getProjects({ limit }: { limit?: number } = {}): Promise<TProject[]> {
-  if (!(await ready())) return [];
-  const query = Project.find(PUBLISHED).sort({ featured: -1, order: 1, year: -1 });
-  if (limit) query.limit(limit);
-  return serialize<TProject[]>(await query.lean());
+const localizedOrEmpty = (value: unknown) => {
+  const record = (value ?? {}) as Record<string, unknown>;
+  return { en: String(record.en ?? ""), id: String(record.id ?? "") };
+};
+
+const listOrEmpty = (value: unknown) => {
+  const record = (value ?? {}) as Record<string, unknown>;
+  return {
+    en: Array.isArray(record.en) ? record.en.map(String) : [],
+    id: Array.isArray(record.id) ? record.id.map(String) : [],
+  };
+};
+
+/**
+ * Brings one project document up to the current shape, and strips private URLs.
+ *
+ * Two jobs, deliberately in one place — every read goes through here, so
+ * neither can be forgotten at a call site.
+ *
+ * **Defaults.** Mongoose applies schema defaults when a document is created or
+ * saved, never when an existing one is read with `.lean()`. Documents written
+ * before these fields existed therefore come back without them, and a page that
+ * does `project.platforms.join(...)` crashes the prerender rather than
+ * rendering an empty list. The migration script backfills the important ones,
+ * but a read layer that only works on migrated data is a trap for the next
+ * schema change.
+ *
+ * **Private links.** `stripPrivateLinkUrls` removes the address of anything not
+ * publicly reachable. Doing it here means no read path can skip it.
+ */
+function normalizeProject(doc: Record<string, unknown>): Record<string, unknown> {
+  const links = Array.isArray(doc.links) ? (doc.links as ProjectLink[]) : [];
+  const gallery = Array.isArray(doc.gallery) ? (doc.gallery as Record<string, unknown>[]) : [];
+
+  return {
+    ...doc,
+    platforms: Array.isArray(doc.platforms) ? doc.platforms : [],
+    techStack: Array.isArray(doc.techStack) ? doc.techStack : [],
+    // Images stored before the layout fields existed have no placement at all,
+    // and the grid indexes straight into its span-class maps with them. `span`
+    // is the pre-bento single-axis width, kept readable so those documents do
+    // not silently lose the layout they were given.
+    gallery: gallery.map((image) => ({
+      ...image,
+      crop: image.crop ?? null,
+      ratio: image.ratio ?? "original",
+      cols: image.cols ?? SPAN_TO_COLS[image.span as GallerySpan] ?? DEFAULT_GALLERY_COLS,
+      rows: image.rows ?? DEFAULT_GALLERY_ROWS,
+      fit: image.fit ?? "cover",
+      group: image.group ?? "",
+    })),
+    galleryDisplay: doc.galleryDisplay ?? "flat",
+    galleryGroups: Array.isArray(doc.galleryGroups) ? doc.galleryGroups : [],
+    partners: Array.isArray(doc.partners) ? doc.partners : [],
+    lifecycle: doc.lifecycle ?? "live",
+    problem: localizedOrEmpty(doc.problem),
+    role: localizedOrEmpty(doc.role),
+    responsibilities: listOrEmpty(doc.responsibilities),
+    outcomes: listOrEmpty(doc.outcomes),
+    startDate: doc.startDate ?? null,
+    endDate: doc.endDate ?? null,
+    team: Array.isArray(doc.team) ? doc.team : [],
+    teamSize: doc.teamSize ?? null,
+    links: stripPrivateLinkUrls(links),
+  };
 }
 
-export async function getProjectBySlug(slug: string): Promise<TProject | null> {
+/**
+ * The one order projects appear in, everywhere.
+ *
+ * Shared rather than repeated because "the next project" on a detail page has
+ * to mean the same thing as the next card on `/projects` — two sort literals
+ * that drift apart would be invisible until someone noticed the sequence
+ * disagreeing with itself.
+ */
+const PROJECT_SORT = { featured: -1, order: 1, year: -1 } as const;
+
+export async function getProjects({ limit }: { limit?: number } = {}): Promise<TProject[]> {
+  if (!(await ready())) return [];
+  const query = Project.find(PUBLISHED).sort(PROJECT_SORT);
+  if (limit) query.limit(limit);
+  const docs = (await query.lean()) as Record<string, unknown>[];
+  return serialize<TProject[]>(docs.map(normalizeProject));
+}
+
+/**
+ * Other projects to offer at the end of a case study.
+ *
+ * Picked by walking forward from the current project and wrapping around, so
+ * the last project in the order still gets a full set and no two pages show the
+ * same three cards. Selecting the first N instead would make every page a
+ * billboard for whichever project happens to sort first.
+ */
+export async function getOtherProjects(slug: string, limit = 3): Promise<TProject[]> {
+  if (!(await ready())) return [];
+
+  const docs = (await Project.find(PUBLISHED).sort(PROJECT_SORT).lean()) as Record<
+    string,
+    unknown
+  >[];
+
+  const at = docs.findIndex((doc) => doc.slug === slug);
+  if (at === -1) return serialize<TProject[]>(docs.slice(0, limit).map(normalizeProject));
+
+  const picked: Record<string, unknown>[] = [];
+  for (let step = 1; step < docs.length && picked.length < limit; step += 1) {
+    picked.push(docs[(at + step) % docs.length]);
+  }
+
+  return serialize<TProject[]>(picked.map(normalizeProject));
+}
+
+export async function getProjectBySlug(slug: string): Promise<TProjectDetail | null> {
   if (!(await ready())) return null;
-  const doc = await Project.findOne({ slug, ...PUBLISHED }).lean();
-  return doc ? serialize<TProject>(doc) : null;
+  // Partners are populated rather than fetched separately because every project
+  // page is prerendered — this is build-time cost, not per-request cost. The
+  // `match` matters: without it a draft partner would be published by proxy the
+  // moment any project credited them. A non-match populates as null, which the
+  // page already has to handle for a deleted partner anyway.
+  const doc = (await Project.findOne({ slug, ...PUBLISHED })
+    .populate({ path: "partners.partner", match: PUBLISHED })
+    .lean()) as Record<string, unknown> | null;
+  return doc ? serialize<TProjectDetail>(normalizeProject(doc)) : null;
 }
 
 export async function getProjectSlugs(): Promise<string[]> {
   if (!(await ready())) return [];
   const docs = await Project.find(PUBLISHED).select("slug").lean();
   return docs.map((d) => String(d.slug));
+}
+
+export async function getPartners(): Promise<TPartner[]> {
+  if (!(await ready())) return [];
+  return serialize<TPartner[]>(await Partner.find(PUBLISHED).sort({ order: 1 }).lean());
+}
+
+/**
+ * How many published projects credit each partner, keyed by partner id.
+ *
+ * Aggregated in one round trip rather than a count per partner — and returned
+ * as a plain record so the page can render a partner with zero visible projects
+ * without a second query. That case is the point of the partners page: some
+ * engagements can be credited but never shown.
+ */
+export async function getPartnerProjectCounts(): Promise<Record<string, number>> {
+  if (!(await ready())) return {};
+
+  const rows = await Project.aggregate<{ _id: unknown; count: number }>([
+    { $match: PUBLISHED },
+    { $unwind: "$partners" },
+    { $group: { _id: "$partners.partner", count: { $sum: 1 } } },
+  ]);
+
+  return Object.fromEntries(rows.map((row) => [String(row._id), row.count]));
 }
 
 export async function getExperience(): Promise<TExperience[]> {

@@ -16,7 +16,8 @@
     "openSource": "Open Source",
     "playground": "Playground",
     "menu": "Menu",
-    "close": "Close menu"
+    "close": "Close menu",
+    "partners": "Partners"
   },
   "hero": {
     "eyebrow": "// zullstack.dev",
@@ -45,7 +46,45 @@
       "title": "Projects",
       "description": "Systems I designed, built and shipped — with the constraints that shaped them.",
       "cta": "All projects",
-      "empty": "No projects published yet."
+      "empty": "No projects published yet.",
+      "problem": "Problem",
+      "responsibilities": "What I did",
+      "outcomes": "Outcomes",
+      "other": "Other projects",
+      "stack": "Stack",
+      "collaboration": "Collaboration with",
+      "client": "Client",
+      "duration": "Duration",
+      "team": "Team",
+      "teamSize": "{count, plural, one {# person} other {# people}}",
+      "teamMe": "me",
+      "months": "{count, plural, one {# month} other {# months}}",
+      "present": "Present",
+      "links": "Links",
+      "requestDemo": "Request demo",
+      "requestDemoHint": "No public demo account for this one — ask and I'll set one up.",
+      "internalAccess": "Internal — not publicly reachable",
+      "favorite": "Favorite",
+      "lifecycle": {
+        "live": "Live",
+        "in-development": "In development",
+        "sunsetted": "Sunsetted",
+        "internal": "Internal"
+      },
+      "linkKinds": {
+        "live": "Live site",
+        "repo": "Source",
+        "demo": "Demo",
+        "case-study": "Case study",
+        "docs": "Docs",
+        "design": "Design",
+        "app-store": "App Store",
+        "play-store": "Google Play",
+        "other": "Link"
+      },
+      "jumpToGallery": "Jump to gallery",
+      "longImage": "long",
+      "galleryOther": "Other"
     },
     "experience": {
       "eyebrow": "// timeline",
@@ -98,6 +137,19 @@
       "description": "Snippets and live experiments — small, runnable, and free to steal.",
       "cta": "Open the sandbox",
       "empty": "No experiments published yet."
+    },
+    "partners": {
+      "eyebrow": "// together",
+      "title": "Partners & clients",
+      "description": "Agencies I have delivered through, and the clients the work was for. Some of it cannot be shown — the credit still stands.",
+      "cta": "All partners",
+      "empty": "No partners published yet.",
+      "projectCount": "{count, plural, =0 {No public projects} one {# project} other {# projects}}",
+      "kind": {
+        "agency": "Agency",
+        "client": "Client",
+        "both": "Agency & client"
+      }
     }
   },
   "cta": {
@@ -154,5 +206,50 @@
     "open": "Search",
     "placeholder": "Search projects and articles…",
     "empty": "No results for “{query}”."
+  },
+  "contact": {
+    "title": "Get in touch",
+    "hint": "Pick whichever is easiest — I read both.",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "cta": "Get in touch"
+  },
+  "glass": {
+    "advanced": "Advanced glass controls",
+    "presets": "Presets",
+    "reset": "Reset to defaults",
+    "profile": "Bevel profile",
+    "profileHint": "The shape of the edge, and the whole character of the material. Convex is a dome; lip is convex outside and concave in the middle, so it reads as a groove.",
+    "light": "Light — instant",
+    "geometry": "Geometry — rebuilds the lens",
+    "geometryHint": "These are baked into the displacement map, so they apply when you release the slider.",
+    "preset": {
+      "default": "Default",
+      "clear": "Clear",
+      "frosted": "Frosted",
+      "reduced": "Reduced"
+    },
+    "profileName": {
+      "convex": "Convex",
+      "squircle": "Squircle",
+      "concave": "Concave",
+      "lip": "Lip"
+    },
+    "param": {
+      "blur": "Blur level",
+      "opacity": "Glass background opacity",
+      "saturation": "Saturation",
+      "brightness": "Brightness",
+      "rim": "Rim light",
+      "shadow": "Shadow",
+      "sheen": "Sheen",
+      "grain": "Grain",
+      "bevel": "Bezel width",
+      "thickness": "Glass thickness",
+      "ior": "Refraction index",
+      "specularAngle": "Specular angle",
+      "specularOpacity": "Specular opacity",
+      "specularSaturation": "Specular saturation"
+    }
   }
 }

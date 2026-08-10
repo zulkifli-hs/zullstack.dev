@@ -4,10 +4,11 @@ import { Loader2, Plus, X } from "lucide-react";
 import { useActionState, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
 import { saveSiteConfig, type ConfigState } from "@/lib/actions/site-config";
-
-const inputClass =
-  "border-input bg-card focus-visible:ring-ring w-full rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-2";
 
 type Social = { platform: string; url: string; handle: string };
 type Stat = { key: string; value: number | string; suffix: string };
@@ -49,9 +50,9 @@ export function SiteConfigForm({ config }: { config: Record<string, unknown> }) 
         <div className="space-y-2">
           {socials.map((social, index) => (
             <div key={index} className="flex gap-2">
-              <input name={`socials.${index}.platform`} defaultValue={social.platform} placeholder="github" className={inputClass} />
-              <input name={`socials.${index}.url`} defaultValue={social.url} placeholder="https://…" className={inputClass} />
-              <input name={`socials.${index}.handle`} defaultValue={social.handle} placeholder="handle" className={inputClass} />
+              <Input name={`socials.${index}.platform`} defaultValue={social.platform} placeholder="github" />
+              <Input name={`socials.${index}.url`} defaultValue={social.url} placeholder="https://…" />
+              <Input name={`socials.${index}.handle`} defaultValue={social.handle} placeholder="handle" />
               <RemoveButton onClick={() => setSocials(socials.filter((_, i) => i !== index))} />
             </div>
           ))}
@@ -67,16 +68,16 @@ export function SiteConfigForm({ config }: { config: Record<string, unknown> }) 
         <div className="space-y-2">
           {stats.map((stat, index) => (
             <div key={index} className="flex gap-2">
-              <select name={`stats.${index}.key`} defaultValue={stat.key} className={inputClass}>
+              <NativeSelect name={`stats.${index}.key`} defaultValue={stat.key}>
                 <option value="">— remove —</option>
                 {STAT_KEYS.map((key) => (
                   <option key={key} value={key}>
                     {key}
                   </option>
                 ))}
-              </select>
-              <input name={`stats.${index}.value`} type="number" defaultValue={String(stat.value)} className={inputClass} />
-              <input name={`stats.${index}.suffix`} defaultValue={stat.suffix} placeholder="+" className={inputClass} />
+              </NativeSelect>
+              <Input name={`stats.${index}.value`} type="number" defaultValue={String(stat.value)} />
+              <Input name={`stats.${index}.suffix`} defaultValue={stat.suffix} placeholder="+" />
               <RemoveButton onClick={() => setStats(stats.filter((_, i) => i !== index))} />
             </div>
           ))}
@@ -116,10 +117,8 @@ function Text({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="lab-label text-muted-foreground block">
-        {label}
-      </label>
-      <input id={name} name={name} defaultValue={defaultValue} className={inputClass} />
+      <Label htmlFor={name}>{label}</Label>
+      <Input id={name} name={name} defaultValue={defaultValue} />
       {error && <p className="text-destructive text-xs">{error}</p>}
     </div>
   );
@@ -144,9 +143,9 @@ function Bilingual({
           <div key={locale} className="space-y-1">
             <span className="lab-label text-muted-foreground/70">{locale}</span>
             {textarea ? (
-              <textarea name={`${name}.${locale}`} defaultValue={get(name, locale)} rows={6} className={`${inputClass} resize-y`} />
+              <Textarea name={`${name}.${locale}`} defaultValue={get(name, locale)} rows={6} />
             ) : (
-              <input name={`${name}.${locale}`} defaultValue={get(name, locale)} className={inputClass} />
+              <Input name={`${name}.${locale}`} defaultValue={get(name, locale)} />
             )}
           </div>
         ))}
@@ -157,26 +156,23 @@ function Bilingual({
 
 function AddButton({ onClick }: { onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="text-muted-foreground hover:text-foreground mt-2 inline-flex items-center gap-1.5 text-xs"
-    >
+    <Button variant="ghost" size="xs" onClick={onClick} className="mt-2">
       <Plus className="size-3.5" />
       Add row
-    </button>
+    </Button>
   );
 }
 
 function RemoveButton({ onClick }: { onClick: () => void }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
+      size="icon-sm"
       onClick={onClick}
       aria-label="Remove row"
-      className="text-muted-foreground hover:text-destructive shrink-0 px-1"
+      className="hover:text-destructive shrink-0"
     >
       <X className="size-4" />
-    </button>
+    </Button>
   );
 }
