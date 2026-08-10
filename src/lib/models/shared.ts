@@ -1,6 +1,13 @@
 import { Schema, type SchemaDefinitionProperty } from "mongoose";
 
-import type { GalleryGroup, GalleryImage, Localized, ProjectLink, StoredImage } from "@/lib/content-enums";
+import type {
+  GalleryGroup,
+  GalleryImage,
+  Localized,
+  ProjectLink,
+  StoredImage,
+  TeamMember,
+} from "@/lib/content-enums";
 import {
   CROP_RATIOS,
   DEFAULT_GALLERY_COLS,
@@ -114,6 +121,15 @@ export const galleryGroupSchema = new Schema<GalleryGroup>(
       type: { en: { type: String, default: "" }, id: { type: String, default: "" } },
       required: false,
     },
+  },
+  { _id: false },
+);
+
+export const teamMemberSchema = new Schema<TeamMember>(
+  {
+    role: { type: String, required: true, trim: true },
+    count: { type: Number, required: true, min: 1 },
+    self: { type: Boolean, default: false },
   },
   { _id: false },
 );

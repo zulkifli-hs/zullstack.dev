@@ -169,17 +169,55 @@ function normalizeProject(doc: Record<string, unknown>): Record<string, unknown>
     outcomes: listOrEmpty(doc.outcomes),
     startDate: doc.startDate ?? null,
     endDate: doc.endDate ?? null,
+    team: Array.isArray(doc.team) ? doc.team : [],
     teamSize: doc.teamSize ?? null,
     links: stripPrivateLinkUrls(links),
   };
 }
 
+/**
+ * The one order projects appear in, everywhere.
+ *
+ * Shared rather than repeated because "the next project" on a detail page has
+ * to mean the same thing as the next card on `/projects` — two sort literals
+ * that drift apart would be invisible until someone noticed the sequence
+ * disagreeing with itself.
+ */
+const PROJECT_SORT = { featured: -1, order: 1, year: -1 } as const;
+
 export async function getProjects({ limit }: { limit?: number } = {}): Promise<TProject[]> {
   if (!(await ready())) return [];
-  const query = Project.find(PUBLISHED).sort({ featured: -1, order: 1, year: -1 });
+  const query = Project.find(PUBLISHED).sort(PROJECT_SORT);
   if (limit) query.limit(limit);
   const docs = (await query.lean()) as Record<string, unknown>[];
   return serialize<TProject[]>(docs.map(normalizeProject));
+}
+
+/**
+ * Other projects to offer at the end of a case study.
+ *
+ * Picked by walking forward from the current project and wrapping around, so
+ * the last project in the order still gets a full set and no two pages show the
+ * same three cards. Selecting the first N instead would make every page a
+ * billboard for whichever project happens to sort first.
+ */
+export async function getOtherProjects(slug: string, limit = 3): Promise<TProject[]> {
+  if (!(await ready())) return [];
+
+  const docs = (await Project.find(PUBLISHED).sort(PROJECT_SORT).lean()) as Record<
+    string,
+    unknown
+  >[];
+
+  const at = docs.findIndex((doc) => doc.slug === slug);
+  if (at === -1) return serialize<TProject[]>(docs.slice(0, limit).map(normalizeProject));
+
+  const picked: Record<string, unknown>[] = [];
+  for (let step = 1; step < docs.length && picked.length < limit; step += 1) {
+    picked.push(docs[(at + step) % docs.length]);
+  }
+
+  return serialize<TProject[]>(picked.map(normalizeProject));
 }
 
 export async function getProjectBySlug(slug: string): Promise<TProjectDetail | null> {
