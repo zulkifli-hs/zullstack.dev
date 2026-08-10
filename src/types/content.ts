@@ -1,6 +1,8 @@
 import type {
   CropRatio,
   CropRect,
+  EmploymentType,
+  ExperiencePosition,
   GalleryDisplay,
   GalleryGroup,
   GalleryImage,
@@ -9,6 +11,7 @@ import type {
   LinkAccess,
   LinkKind,
   Localized,
+  LocationType,
   PartnerKind,
   PartnerRole,
   Platform,
@@ -20,6 +23,8 @@ import type {
 export type {
   CropRatio,
   CropRect,
+  EmploymentType,
+  ExperiencePosition,
   GalleryDisplay,
   GalleryGroup,
   GalleryImage,
@@ -28,6 +33,7 @@ export type {
   LinkAccess,
   LinkKind,
   Localized,
+  LocationType,
   PartnerKind,
   PartnerRole,
   Platform,
@@ -109,19 +115,20 @@ export type ProjectDetail = Omit<Project, "partners"> & {
   partners: ProjectPartnerResolved[];
 };
 
+/**
+ * One company, with every title held there.
+ *
+ * `partner` is populated by the read layer, and may be `null` when the company
+ * record was deleted or left unpublished — the timeline falls back to the
+ * legacy `company` string, so a broken reference costs a logo, not the entry.
+ */
 export type Experience = Base & {
-  company: string;
+  partner: Partner | null;
+  positions: ExperiencePosition[];
+  /** Legacy company name, kept as the fallback label. */
+  company?: string;
   companyUrl?: string;
   logo?: StoredImage;
-  position: Localized;
-  employmentType: "full-time" | "part-time" | "contract" | "freelance" | "internship";
-  location: string;
-  locationType: "onsite" | "hybrid" | "remote";
-  startDate: string;
-  endDate: string | null;
-  current: boolean;
-  highlights: { en: string[]; id: string[] };
-  techStack: string[];
 };
 
 export type MentoringTrack = Base & {
@@ -199,6 +206,8 @@ export type SiteConfig = {
   tagline: Localized;
   bio: Localized;
   avatar?: StoredImage;
+  /** Full cut-out shown beside the hero copy. */
+  heroPhoto?: StoredImage;
   resumeUrl?: string;
   email: string;
   location: string;

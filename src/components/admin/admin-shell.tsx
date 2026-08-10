@@ -1,6 +1,7 @@
 import {
   BookOpen,
   Briefcase,
+  Building2,
   FileText,
   FlaskConical,
   GitBranch,
@@ -21,6 +22,9 @@ export const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/projects", label: "Projects", icon: FlaskConical },
   { href: "/admin/experience", label: "Experience", icon: Briefcase },
+  // The company directory behind both the project credits and the experience
+  // timeline. It had a full resource but no way to reach it.
+  { href: "/admin/partners", label: "Partners", icon: Building2 },
   { href: "/admin/mentoring", label: "Mentoring", icon: GraduationCap },
   { href: "/admin/articles", label: "Articles", icon: FileText },
   { href: "/admin/comments", label: "Comments", icon: MessageSquare },

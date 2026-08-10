@@ -82,9 +82,7 @@
         "play-store": "Google Play",
         "other": "Tautan"
       },
-      "jumpToGallery": "Lompat ke galeri",
-      "longImage": "panjang",
-      "galleryOther": "Lainnya"
+      "jumpToGallery": "Lompat ke galeri"
     },
     "experience": {
       "eyebrow": "// linimasa",
@@ -92,6 +90,9 @@
       "description": "Tempat saya bekerja, apa yang saya pegang, dan pelajaran yang saya bawa.",
       "cta": "Riwayat lengkap",
       "empty": "Belum ada pengalaman yang dipublikasikan.",
+      "years": "{count, plural, other {# thn}}",
+      "months": "{count, plural, other {# bln}}",
+      "skills": "Keahlian",
       "present": "Sekarang"
     },
     "mentoring": {
@@ -148,9 +149,14 @@
       "kind": {
         "agency": "Agency",
         "client": "Klien",
+        "employer": "Tempat kerja",
         "both": "Agency & klien"
       }
     }
+  },
+  "gallery": {
+    "long": "panjang",
+    "other": "Lainnya"
   },
   "cta": {
     "title": "Mari bangun sesuatu yang layak dirawat",
@@ -176,7 +182,6 @@
     "theme": "Tema",
     "themeLight": "Terang",
     "themeDark": "Gelap",
-    "themeSystem": "Sistem",
     "language": "Bahasa",
     "transparency": "Transparansi kaca",
     "transparencyOn": "Kaca penuh",
@@ -224,7 +229,6 @@
     "geometry": "Geometri — membangun ulang lensa",
     "geometryHint": "Nilai ini dipanggang ke dalam peta displacement, jadi diterapkan saat slider dilepas.",
     "preset": {
-      "default": "Bawaan",
       "clear": "Bening",
       "frosted": "Buram",
       "reduced": "Redup"

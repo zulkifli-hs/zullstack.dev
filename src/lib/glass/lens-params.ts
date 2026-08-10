@@ -49,12 +49,20 @@ export type MapParams = {
 
 export type GlassParams = CssParams & MapParams;
 
+/**
+ * The material as shipped — the `clear` preset.
+ *
+ * The CSS half is duplicated as the `--glass-user-*` defaults in globals.css,
+ * because those are what the first paint uses and this is what the client
+ * applies once it hydrates. **Change one and you must change the other**, or
+ * every page load re-tints a frame in.
+ */
 export const DEFAULT_PARAMS: GlassParams = {
-  blur: 1,
-  opacity: 1,
-  saturation: 1,
+  blur: 0.35,
+  opacity: 0.7,
+  saturation: 1.3,
   brightness: 1,
-  rim: 1,
+  rim: 1.3,
   shadow: 1,
   sheen: 1,
   grain: 1,
@@ -64,9 +72,9 @@ export const DEFAULT_PARAMS: GlassParams = {
   // Measured in Chromium against a stripe pattern, that is the difference
   // between 18.08 and 6.73 mean delta — visible refraction versus none.
   profile: "convex",
-  bevel: 28,
+  bevel: 22,
   ior: 1.5,
-  thickness: 1,
+  thickness: 1.6,
   specularAngle: -60,
   specularOpacity: 0.4,
   specularSaturation: 6,
@@ -151,19 +159,19 @@ export function cssVars(p: GlassParams): Record<string, string> {
 
 export const GLASS_STORAGE_KEY = "zullstack-glass";
 
-export type PresetId = "default" | "clear" | "frosted" | "reduced";
+export type PresetId = "clear" | "frosted" | "reduced";
 export type Preset = { id: PresetId; params: Partial<GlassParams> };
 
 /**
  * `reduced` is not a style choice — it is the accessibility escape hatch, and
  * it is the one preset that must remain reachable in one gesture.
+ *
+ * There is no separate `default` entry: `clear` *is* the default now, so a
+ * second button restoring the same values would only ask the reader which of
+ * two identical things they wanted. Reset lands here too.
  */
 export const PRESETS: Preset[] = [
-  { id: "default", params: DEFAULT_PARAMS },
-  {
-    id: "clear",
-    params: { blur: 0.35, opacity: 0.7, saturation: 1.3, thickness: 1.6, bevel: 22, rim: 1.3 },
-  },
+  { id: "clear", params: DEFAULT_PARAMS },
   {
     id: "frosted",
     params: { blur: 2, opacity: 1.35, saturation: 1.1, thickness: 0.5, bevel: 10, sheen: 0.6 },

@@ -12,10 +12,12 @@ import {
   Testimonial,
 } from "@/lib/models";
 import {
+  EMPLOYMENT_TYPES,
   GALLERY_DISPLAYS,
   LIFECYCLES,
   LINK_ACCESS,
   LINK_KINDS,
+  LOCATION_TYPES,
   PARTNER_KINDS,
   PARTNER_ROLES,
   PLATFORMS,
@@ -191,25 +193,55 @@ export const RESOURCES: Record<ResourceKey, ResourceDef> = {
     ],
   },
 
+  /**
+   * One entry per *company*, not per job title.
+   *
+   * Edited through the bespoke `/admin/experience` screen, which is why the
+   * `positions` descriptor is minimal here: the position editor needs an image
+   * uploader inside every row, and `RepeaterField` rows cannot hold one. This
+   * entry still exists because `saveEntity`, `deleteEntity` and `toggleStatus`
+   * all resolve through `assertResource()`.
+   */
   experience: {
     label: "Experience",
-    singular: "Role",
+    singular: "Company",
     model: Experience,
-    titleField: "position",
-    listColumns: [{ name: "company", label: "Company" }],
-    sort: { startDate: -1 },
+    titleField: "company",
+    sort: { order: 1 },
+    reorderable: true,
     fields: [
-      { name: "company", label: "Company", type: "text", required: true },
-      { name: "companyUrl", label: "Company URL", type: "url" },
-      { name: "position", label: "Position", type: "localized-text", required: true, wide: true },
-      { name: "employmentType", label: "Employment type", type: "select", options: ["full-time", "part-time", "contract", "freelance", "internship"], required: true },
-      { name: "locationType", label: "Location type", type: "select", options: ["onsite", "hybrid", "remote"], required: true },
-      { name: "location", label: "Location", type: "text" },
-      { name: "startDate", label: "Start date", type: "date", required: true },
-      { name: "endDate", label: "End date", type: "date", help: "Leave empty for a current role." },
-      { name: "current", label: "Current role", type: "boolean" },
-      { name: "highlights", label: "Highlights", type: "localized-list", wide: true, help: "One achievement per line." },
-      { name: "techStack", label: "Tech stack", type: "tags", wide: true },
+      {
+        name: "partner",
+        label: "Company",
+        type: "reference",
+        relationTo: "partners",
+        required: true,
+        help: 'Registered under Partners. Set its kind to "employer" so it stays off the public partners page.',
+      },
+      {
+        name: "positions",
+        label: "Positions",
+        type: "repeater",
+        wide: true,
+        addLabel: "Add position",
+        // Never rendered — the bespoke form draws its own position cards — but
+        // `schemaFor` recurses through these to build the validator, so this is
+        // still the single definition of what a position is. Dropping them
+        // would validate each row against an empty object and silently strip
+        // every field on save.
+        itemFields: [
+          { name: "position", label: "Title", type: "localized-text", required: true },
+          { name: "employmentType", label: "Employment type", type: "select", options: EMPLOYMENT_TYPES, required: true },
+          { name: "locationType", label: "Location type", type: "select", options: LOCATION_TYPES, required: true },
+          { name: "location", label: "Location", type: "text" },
+          { name: "startDate", label: "Start date", type: "date", required: true },
+          { name: "endDate", label: "End date", type: "date", help: "Leave empty for a current role." },
+          { name: "current", label: "Current role", type: "boolean" },
+          { name: "highlights", label: "Highlights", type: "localized-list", help: "One achievement per line." },
+          { name: "skills", label: "Skills", type: "tags", help: "Not only technologies — curriculum design and mentoring belong here too." },
+          { name: "media", label: "Media", type: "gallery" },
+        ],
+      },
       ORDER_FIELD,
       STATUS_FIELD,
     ],

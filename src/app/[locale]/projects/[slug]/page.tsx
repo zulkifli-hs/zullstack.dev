@@ -93,9 +93,10 @@ export default async function ProjectPage({ params }: { params: Params }) {
   ]);
   if (!project) notFound();
 
-  const [t, tCommon] = await Promise.all([
+  const [t, tCommon, tGallery] = await Promise.all([
     getTranslations("sections.projects"),
     getTranslations("common"),
+    getTranslations("gallery"),
   ]);
 
   const { collaboration, client } = partnersByRole(project.partners);
@@ -400,7 +401,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
             title={pick(project.title, locale)}
             display={project.galleryDisplay}
             groups={project.galleryGroups}
-            labels={{ long: t("longImage"), ungrouped: t("galleryOther") }}
+            labels={{ long: tGallery("long"), ungrouped: tGallery("other") }}
           />
         </section>
       )}

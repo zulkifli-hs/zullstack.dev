@@ -47,7 +47,7 @@ export type LensEntry = {
   height?: number;
 };
 
-type Internal = LensEntry & { refs: number; usedAt: number };
+type Internal = LensEntry & { refs: number; usedAt: number; version: number };
 
 const entries = new Map<string, Internal>();
 const listeners = new Map<string, Set<() => void>>();
@@ -57,6 +57,15 @@ let params: MapParams = { ...DEFAULT_PARAMS };
 let worker: Worker | null = null;
 let workerBroken = false;
 let seq = 0;
+
+/**
+ * Bumped whenever the material parameters change.
+ *
+ * Every entry is stamped with the version it was baked under, and a consumer
+ * holding a stale one is told it has nothing — which is what makes the geometry
+ * controls work at all. See `setLensParams`.
+ */
+let paramsVersion = 0;
 
 /**
  * `useSyncExternalStore` compares snapshots by identity, so `readyEntries` must
@@ -225,6 +234,7 @@ function ensure(key: string, input: LensRequestInput) {
     status: "pending",
     refs: 0,
     usedAt: ++seq,
+    version: paramsVersion,
   };
   entries.set(key, entry);
 
@@ -260,9 +270,29 @@ function ensure(key: string, input: LensRequestInput) {
 /** Key characters that are legal in a CSS identifier and a `url(#…)` reference. */
 const cssId = (key: string) => key.replace(/[^a-zA-Z0-9]/g, "-");
 
-/** Replaces the material parameters and drops every map baked with the old set. */
+/**
+ * Replaces the material parameters and drops every map baked with the old set.
+ *
+ * The wake-up at the bottom is load-bearing, and its absence is what made the
+ * whole Geometry group — profile, bevel, ior, thickness, and the three specular
+ * knobs — silently do nothing:
+ *
+ *   `lensKey()` embeds all of them, so a change *should* send every surface
+ *   looking for a different map. But a surface only recomputes its key when it
+ *   re-renders, and it only re-renders when its `useSyncExternalStore` snapshot
+ *   changes by identity. Notifying just the global listeners woke the `<defs>`
+ *   pool and nobody else; handing back the same cached entry made React bail
+ *   out even when they were notified. So every mounted surface kept the map it
+ *   already had, for good.
+ *
+ * Stamping the version and refusing stale entries in `getSnapshot` is what
+ * closes the loop: snapshot flips to `null`, the surface re-renders, asks for a
+ * key built from the new parameters, and the worker gets its job.
+ */
 export function setLensParams(next: MapParams) {
   params = { ...next };
+  paramsVersion += 1;
+
   for (const [key, entry] of entries) {
     // A referenced entry keeps its URLs until its last consumer unmounts —
     // which happens on the next render, because the key it asks for has just
@@ -272,8 +302,10 @@ export function setLensParams(next: MapParams) {
     entries.delete(key);
     listeners.delete(key);
   }
+
   invalidate();
   for (const fn of globalListeners) fn();
+  for (const set of listeners.values()) for (const fn of set) fn();
 }
 
 export function getLensParams(): MapParams {
@@ -354,7 +386,11 @@ export function useLens(input: LensRequestInput | null): LensEntry | null {
   const getSnapshot = useCallback(() => {
     if (!key) return NO_ENTRY;
     const entry = entries.get(key);
-    return entry && entry.status === "ready" ? entry : NO_ENTRY;
+    // A map baked under older parameters is treated as no map at all: the
+    // surface drops to its static tier filter for the ~35ms the worker needs,
+    // which is the same fallback it already uses before the first map arrives.
+    if (!entry || entry.status !== "ready" || entry.version !== paramsVersion) return NO_ENTRY;
+    return entry;
   }, [key]);
 
   return useSyncExternalStore(subscribe, getSnapshot, () => NO_ENTRY);

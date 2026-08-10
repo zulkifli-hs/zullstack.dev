@@ -15,9 +15,13 @@ export function LabBackground({ className }: { className?: string }) {
       {/* Mesh gradient — the only saturated colour on the page. The glass picks
           it up as an adaptive tint for free, which is our approximation of
           Apple's "light spills onto the surface". */}
-      <div className="absolute -top-1/4 left-1/2 h-[70vh] w-[80vw] -translate-x-1/2 rounded-full bg-brand-600/20 blur-[120px] dark:bg-brand-600/25" />
-      <div className="absolute top-1/3 -left-[10%] h-[50vh] w-[50vw] rounded-full bg-accent-400/10 blur-[130px] dark:bg-accent-500/10" />
-      <div className="absolute -right-[10%] bottom-0 h-[55vh] w-[55vw] rounded-full bg-brand-400/15 blur-[140px] dark:bg-brand-700/20" />
+      {/* Light mode carries a stronger mesh than dark for the same reason the
+          grid does: colour at low alpha over white is a weaker figure than the
+          same colour over near-black, and a lens with a flat backdrop has
+          nothing to prove itself against. */}
+      <div className="bg-brand-600/28 dark:bg-brand-600/25 absolute -top-1/4 left-1/2 h-[70vh] w-[80vw] -translate-x-1/2 rounded-full blur-[120px]" />
+      <div className="bg-accent-400/16 dark:bg-accent-500/10 absolute top-1/3 -left-[10%] h-[50vh] w-[50vw] rounded-full blur-[130px]" />
+      <div className="bg-brand-400/22 dark:bg-brand-700/20 absolute -right-[10%] bottom-0 h-[55vh] w-[55vw] rounded-full blur-[140px]" />
 
       {/* Blueprint grid, masked so it dissolves toward the edges instead of
           ending on a hard line.

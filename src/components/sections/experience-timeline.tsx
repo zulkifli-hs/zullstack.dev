@@ -1,10 +1,31 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import { Tag } from "@/components/lab/section";
+import { ProjectGallery } from "@/components/sections/project-gallery";
 import type { Locale } from "@/i18n/routing";
+import {
+  companyLogo,
+  companyName,
+  companyUrl,
+  formatTenure,
+  monthsBetween,
+  sortedPositions,
+  tenureMonths,
+} from "@/lib/experience";
+import { cloudinarySrc } from "@/lib/images/cloudinary";
 import { formatDate, pick, pickList } from "@/lib/utils";
-import type { Experience } from "@/types/content";
+import { cn } from "@/lib/utils";
+import type { Experience, ExperiencePosition } from "@/types/content";
 
+/**
+ * Companies, each with the titles held there.
+ *
+ * Grouped rather than flat because a flat list cannot state the one thing a
+ * career of overlapping work is made of: two employers at once. Sorted by start
+ * date, three roles at one company and three at another interleave into six
+ * fragments, and the reader has to reassemble both histories from the dates.
+ */
 export async function ExperienceTimeline({
   items,
   locale,
@@ -12,68 +33,183 @@ export async function ExperienceTimeline({
 }: {
   items: Experience[];
   locale: Locale;
+  /** Companies, not positions — the home page shows the three most recent. */
   limit?: number;
 }) {
-  const t = await getTranslations("sections.experience");
+  // `gallery` is its own namespace rather than a corner of `projects`, because
+  // the same component now labels images in two unrelated places.
+  const [t, tGallery] = await Promise.all([
+    getTranslations("sections.experience"),
+    getTranslations("gallery"),
+  ]);
   const shown = limit ? items.slice(0, limit) : items;
 
+  const tenureLabels = {
+    years: (count: number) => t("years", { count }),
+    months: (count: number) => t("months", { count }),
+  };
+
   return (
-    <ol className="relative">
-      {shown.map((role) => (
-        <li
-          key={role.id}
-          // The rail is drawn with a left border on each item rather than one
-          // absolutely-positioned line, so it can never drift out of sync with
-          // the content height.
-          className="border-hairline relative border-l pb-10 pl-8 last:border-transparent last:pb-0"
-        >
-          <span
-            aria-hidden
-            className="bg-background absolute top-1.5 -left-[5px] size-2.5 rounded-full ring-2"
-            style={{ boxShadow: "0 0 0 2px var(--signal)" }}
-          />
+    <ol className="space-y-10">
+      {shown.map((entry) => {
+        const positions = sortedPositions(entry);
+        const name = companyName(entry);
+        const url = companyUrl(entry);
+        const logo = companyLogo(entry);
+        const tenure = formatTenure(tenureMonths(positions), tenureLabels);
+        // The company's own line carries where it was based; each position adds
+        // only what differs from it, which is usually just onsite/remote.
+        const location = positions.find((position) => position.location)?.location;
 
-          <p className="lab-label text-muted-foreground tabular">
-            {formatDate(role.startDate, locale)} —{" "}
-            {role.current ? t("present") : formatDate(role.endDate, locale)}
-          </p>
-
-          <h3 className="mt-2 text-lg font-semibold tracking-tight">
-            {pick(role.position, locale)}
-          </h3>
-          <p className="text-link text-sm font-medium">
-            {role.companyUrl ? (
-              <a href={role.companyUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                {role.company}
-              </a>
-            ) : (
-              role.company
-            )}
-          </p>
-          <p className="text-muted-foreground mt-0.5 font-mono text-xs">
-            {role.location} · {role.locationType} · {role.employmentType}
-          </p>
-
-          <ul className="text-muted-foreground mt-4 space-y-1.5 text-sm">
-            {pickList(role.highlights, locale).map((highlight) => (
-              <li key={highlight} className="flex gap-2.5">
-                <span aria-hidden className="text-signal mt-px font-mono text-xs">
-                  ▸
+        return (
+          <li key={entry.id}>
+            <div className="flex items-start gap-3">
+              {logo ? (
+                <Image
+                  src={cloudinarySrc(logo)}
+                  alt=""
+                  width={logo.width ?? 96}
+                  height={logo.height ?? 96}
+                  className="border-hairline/60 size-11 shrink-0 rounded-lg border object-contain p-1"
+                />
+              ) : (
+                // A blank square keeps every company on the same left edge, so
+                // a missing logo does not shunt one block out of alignment.
+                <span
+                  aria-hidden
+                  className="border-hairline/60 text-muted-foreground/60 grid size-11 shrink-0 place-items-center rounded-lg border font-mono text-sm"
+                >
+                  {name.slice(0, 1).toUpperCase()}
                 </span>
-                <span className="text-pretty">{highlight}</span>
-              </li>
-            ))}
-          </ul>
+              )}
 
-          {role.techStack.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {role.techStack.map((tech) => (
-                <Tag key={tech}>{tech}</Tag>
-              ))}
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold tracking-tight">
+                  {url ? (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-link transition-colors"
+                    >
+                      {name}
+                    </a>
+                  ) : (
+                    name
+                  )}
+                </h3>
+
+                <p className="text-muted-foreground mt-0.5 font-mono text-xs">
+                  {[tenure, location].filter(Boolean).join(" · ")}
+                </p>
+              </div>
             </div>
-          )}
-        </li>
-      ))}
+
+            {/* Indented to sit under the company name, not the logo — the same
+                hanging alignment LinkedIn uses, which is what makes a block of
+                positions read as belonging to the company above it. */}
+            <ol className="mt-4 ml-5 space-y-6 sm:ml-14">
+              {positions.map((position, index) => (
+                <Position
+                  key={`${pick(position.position, locale)}-${index}`}
+                  position={position}
+                  locale={locale}
+                  last={index === positions.length - 1}
+                  labels={{
+                    present: t("present"),
+                    skills: t("skills"),
+                    long: tGallery("long"),
+                    ungrouped: tGallery("other"),
+                  }}
+                  duration={formatTenure(
+                    monthsBetween(position.startDate, position.endDate),
+                    tenureLabels,
+                  )}
+                />
+              ))}
+            </ol>
+          </li>
+        );
+      })}
     </ol>
+  );
+}
+
+function Position({
+  position,
+  locale,
+  last,
+  duration,
+  labels,
+}: {
+  position: ExperiencePosition;
+  locale: Locale;
+  last: boolean;
+  duration: string;
+  labels: { present: string; skills: string; long: string; ungrouped: string };
+}) {
+  const highlights = pickList(position.highlights, locale);
+
+  const range = position.startDate
+    ? `${formatDate(position.startDate, locale)} — ${
+        position.endDate ? formatDate(position.endDate, locale) : labels.present
+      }`
+    : "";
+
+  return (
+    // The rail is a left border on each item rather than one absolutely
+    // positioned line, so it can never drift out of sync with the content it is
+    // measuring. The last position stops the line instead of trailing past it.
+    <li className={cn("relative border-l pl-6", last ? "border-transparent" : "border-hairline")}>
+      <span
+        aria-hidden
+        className="bg-background absolute top-1.5 -left-[5px] size-2.5 rounded-full"
+        style={{ boxShadow: "0 0 0 2px var(--signal)" }}
+      />
+
+      <h4 className="font-medium tracking-tight">{pick(position.position, locale)}</h4>
+
+      <p className="text-muted-foreground mt-0.5 font-mono text-xs">
+        {[range, duration].filter(Boolean).join(" · ")}
+      </p>
+      <p className="text-muted-foreground font-mono text-xs">
+        {[position.employmentType, position.locationType].filter(Boolean).join(" · ")}
+      </p>
+
+      {highlights.length > 0 && (
+        <ul className="text-muted-foreground mt-3 space-y-1.5 text-sm">
+          {highlights.map((highlight) => (
+            <li key={highlight} className="flex gap-2.5">
+              <span aria-hidden className="text-signal mt-px font-mono text-xs">
+                ▸
+              </span>
+              <span className="text-pretty">{highlight}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {position.skills.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {position.skills.map((skill) => (
+            <Tag key={skill}>{skill}</Tag>
+          ))}
+        </div>
+      )}
+
+      {/* The same gallery the project pages use — bento grid, lightbox and all.
+          A second gallery built for this one place would be a second thing to
+          keep working. */}
+      {position.media.length > 0 && (
+        <div className="mt-4">
+          <ProjectGallery
+            images={position.media}
+            locale={locale}
+            title={pick(position.position, locale)}
+            labels={{ long: labels.long, ungrouped: labels.ungrouped }}
+          />
+        </div>
+      )}
+    </li>
   );
 }

@@ -99,8 +99,14 @@ export function toGalleryEntries(value: unknown): GalleryEntry[] {
   });
 }
 
-/** Drops client-only keys before the entry is serialised for the server. */
-function forSubmit(entry: Entry) {
+/**
+ * Drops client-only keys before the entry is serialised for the server.
+ *
+ * Exported because a gallery is not always a top-level field: the experience
+ * form nests one inside every position, and folds the result into that form's
+ * own JSON rather than letting this component post its own input.
+ */
+export function galleryForSubmit(entry: GalleryEntry) {
   const { url, publicId, width, height, alt, caption, crop, ratio, cols, rows, fit, group } = entry;
   return { url, publicId, width, height, alt, caption, crop, ratio, cols, rows, fit, group };
 }
@@ -172,7 +178,14 @@ export function GalleryStudio({
   groups = [],
   display = "flat",
 }: {
-  name: string;
+  /**
+   * Posts the list as one hidden input under this name.
+   *
+   * Omitted when the gallery is nested inside another field's JSON — the
+   * experience form keeps its positions' media in its own blob, and a second
+   * input would post the same images twice under a name nothing reads.
+   */
+  name?: string;
   label: string;
   help?: string;
   images: GalleryEntry[];
@@ -256,7 +269,9 @@ export function GalleryStudio({
         </label>
       </div>
 
-      <input type="hidden" name={name} value={JSON.stringify(images.map(forSubmit))} />
+      {name && (
+        <input type="hidden" name={name} value={JSON.stringify(images.map(galleryForSubmit))} />
+      )}
 
       {error && (
         <p role="alert" className="text-destructive text-xs">
@@ -338,7 +353,7 @@ export function GalleryStudio({
               >
                 <div ref={contentRef}>
                   <ProjectGallery
-                    images={images.map(forSubmit)}
+                    images={images.map(galleryForSubmit)}
                     locale={previewLocale}
                     title="Preview"
                     display={display}

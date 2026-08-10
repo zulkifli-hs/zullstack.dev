@@ -9,6 +9,29 @@ import { SiteConfig } from "@/lib/models";
 
 const localized = z.object({ en: z.string().trim(), id: z.string().trim() });
 
+/**
+ * What `ImageField` submits, and nothing more.
+ *
+ * An empty URL means "no image", which has to round-trip as `undefined` rather
+ * than as an object full of empty strings — otherwise removing the photo would
+ * store a broken image instead of clearing the field.
+ */
+const storedImage = z
+  .object({
+    url: z.string().trim(),
+    publicId: z.string().trim(),
+    width: z.number().optional(),
+    height: z.number().optional(),
+    alt: localized.optional(),
+    crop: z
+      .object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() })
+      .nullable()
+      .optional(),
+    ratio: z.string().trim().optional(),
+  })
+  .transform((value) => (value.url ? value : undefined))
+  .optional();
+
 const configSchema = z.object({
   name: z.string().trim().min(1, "Required"),
   email: z.union([z.email("Must be a valid email"), z.literal("")]),
@@ -16,6 +39,7 @@ const configSchema = z.object({
   resumeUrl: z.union([z.url("Must be a valid URL"), z.literal("")]),
   tagline: localized,
   bio: localized,
+  heroPhoto: storedImage,
   socials: z.array(
     z.object({ platform: z.string().trim(), url: z.string().trim(), handle: z.string().trim() }),
   ),
@@ -34,6 +58,37 @@ export async function saveSiteConfig(_prev: ConfigState, formData: FormData): Pr
    * Rebuilt by index so rows can be added or removed client-side without the
    * server needing to know how many there are.
    */
+  /**
+   * Rebuilds the object `ImageField` spreads across several inputs.
+   *
+   * The crop travels as one JSON blob rather than four scalars, for the same
+   * reason it does everywhere else: four numbers in four inputs can disagree.
+   */
+  const image = (prefix: string) => {
+    const num = (key: string) => {
+      const value = text(`${prefix}.${key}`);
+      return value === "" ? undefined : Number(value);
+    };
+
+    let crop: unknown = null;
+    try {
+      const raw = text(`${prefix}.crop`);
+      crop = raw ? JSON.parse(raw) : null;
+    } catch {
+      crop = null;
+    }
+
+    return {
+      url: text(`${prefix}.url`),
+      publicId: text(`${prefix}.publicId`),
+      width: num("width"),
+      height: num("height"),
+      alt: { en: text(`${prefix}.alt.en`), id: text(`${prefix}.alt.id`) },
+      crop,
+      ratio: text(`${prefix}.ratio`) || "original",
+    };
+  };
+
   const rows = (prefix: string, keys: string[]) => {
     const out: Record<string, string>[] = [];
     for (let i = 0; formData.has(`${prefix}.${i}.${keys[0]}`); i++) {
@@ -51,6 +106,7 @@ export async function saveSiteConfig(_prev: ConfigState, formData: FormData): Pr
     resumeUrl: text("resumeUrl"),
     tagline: { en: text("tagline.en"), id: text("tagline.id") },
     bio: { en: text("bio.en"), id: text("bio.id") },
+    heroPhoto: image("heroPhoto"),
     socials: rows("socials", ["platform", "url", "handle"]),
     stats: rows("stats", ["key", "value", "suffix"]).map((row) => ({
       ...row,
