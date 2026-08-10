@@ -188,8 +188,20 @@ export type ProjectLink = {
 export const PARTNER_ROLES = ["collaboration", "client"] as const;
 export type PartnerRole = (typeof PARTNER_ROLES)[number];
 
-export const PARTNER_KINDS = ["agency", "client", "both"] as const;
+/**
+ * `employer` makes this collection the one company directory.
+ *
+ * A company you worked *at* is not a partner in the same sense as an agency you
+ * delivered *through* — but it is the same record: a name, a logo, a website.
+ * Keeping one directory is what lets the Experience timeline show a logo without
+ * a second collection that would drift out of step with this one. The public
+ * partners page filters employers out; they belong on `/experience`.
+ */
+export const PARTNER_KINDS = ["agency", "client", "both", "employer"] as const;
 export type PartnerKind = (typeof PARTNER_KINDS)[number];
+
+/** Kinds the public partners page is about. */
+export const PUBLIC_PARTNER_KINDS = ["agency", "client", "both"] as const;
 
 /**
  * A partner attached to one project.
@@ -203,6 +215,44 @@ export type ProjectPartner = {
   partner: string;
   role: PartnerRole;
   url?: string;
+};
+
+/* ── Experience ───────────────────────────────────────────────────────────── */
+
+export const EMPLOYMENT_TYPES = [
+  "full-time",
+  "part-time",
+  "contract",
+  "freelance",
+  "internship",
+] as const;
+export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number];
+
+export const LOCATION_TYPES = ["onsite", "hybrid", "remote"] as const;
+export type LocationType = (typeof LOCATION_TYPES)[number];
+
+/**
+ * One title held at one company.
+ *
+ * Positions are nested inside a company rather than stored as siblings because
+ * two jobs held at once interleave by date, and a flat list sorted by start date
+ * splits both employers into fragments. Grouping is the shape of the fact, not a
+ * presentation trick.
+ *
+ * `skills` rather than `techStack`: what a role taught is not always a
+ * technology, and curriculum design or mentoring has no npm package.
+ */
+export type ExperiencePosition = {
+  position: Localized;
+  employmentType: EmploymentType;
+  locationType: LocationType;
+  location: string;
+  startDate: string | null;
+  endDate: string | null;
+  current: boolean;
+  highlights: { en: string[]; id: string[] };
+  skills: string[];
+  media: GalleryImage[];
 };
 
 /* ── Project ──────────────────────────────────────────────────────────────── */

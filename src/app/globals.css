@@ -223,21 +223,31 @@
   --glass-fx-off: ;
 
   /* Live user controls, written on <html> by the glass panel (and by the
-     blocking script before first paint). Default 1 = untouched. These sit
-     UPSTREAM of the degradation clamps on purpose: a user preference can shape
-     the material, but `prefers-contrast: more` and friends still win, because
-     they clamp the result rather than the input. */
-  --glass-user-blur: 1;
-  --glass-user-tint: 1;
-  --glass-user-sat: 1;
+     blocking script before first paint). These sit UPSTREAM of the degradation
+     clamps on purpose: a user preference can shape the material, but
+     `prefers-contrast: more` and friends still win, because they clamp the
+     result rather than the input.
+
+     These are the `clear` preset, and they must stay identical to
+     DEFAULT_PARAMS in lens-params.ts. That file is what the client applies
+     after hydration; this is what the very first paint uses. If the two ever
+     disagree, every page load visibly re-tints a frame in. */
+  --glass-user-blur: 0.35;
+  --glass-user-tint: 0.7;
+  --glass-user-sat: 1.3;
   --glass-user-bright: 1;
-  --glass-user-rim: 1;
+  --glass-user-rim: 1.3;
 
   /* The substrate is not decoration — it is the thing the lens bends, and the
      only reason refraction is visible at all. At the previous 0.07 it did not
      survive its own blur, so panels read as tinted boxes no matter how correct
-     the displacement map was. */
-  --grid-color: oklch(0.578 0.227 264.4 / 0.16);
+     the displacement map was.
+
+     Light mode needs *more* of it, not less: a mid-blue line at 16% over white
+     is a fainter figure than the same line over near-black, so the light theme
+     was the one where the lens had the least to bend — which is exactly where
+     the material was reported as not reading as glass. */
+  --grid-color: oklch(0.578 0.227 264.4 / 0.22);
   --grid-size: 24px;
   --grid-line: 1px;
 }
@@ -295,6 +305,12 @@
     @apply font-sans;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+
+    /* A backstop against one stray decorative element widening the document on
+       a phone. `clip`, never `hidden`: `hidden` here would turn the root into a
+       scroll container, and that silently breaks every `position: sticky` on
+       the site — the header capsule and the project page's meta rail included. */
+    overflow-x: clip;
   }
 
   body {

@@ -3,6 +3,7 @@ import { model, models, Schema } from "mongoose";
 import {
   baseFields,
   baseSchemaOptions,
+  EMPLOYMENT_TYPES,
   GALLERY_DISPLAYS,
   galleryGroupSchema,
   galleryImageSchema,
@@ -10,6 +11,7 @@ import {
   LIFECYCLES,
   localized,
   localizedList,
+  LOCATION_TYPES,
   PARTNER_KINDS,
   PLATFORMS,
   projectLinkSchema,
@@ -109,29 +111,63 @@ projectSchema.index({ status: 1, featured: -1, order: 1, year: -1 });
 projectSchema.index({ status: 1, "partners.partner": 1 });
 
 /* ── Experience ───────────────────────────────────────────────────────────── */
-const experienceSchema = new Schema(
+
+/** One title held at one company. See `ExperiencePosition`. */
+const experiencePositionSchema = new Schema(
   {
-    company: { type: String, required: true, trim: true },
-    companyUrl: String,
-    logo: { type: imageSchema, required: false },
     position: localized(),
-    employmentType: {
-      type: String,
-      enum: ["full-time", "part-time", "contract", "freelance", "internship"],
-      default: "full-time",
-    },
+    employmentType: { type: String, enum: EMPLOYMENT_TYPES, default: "full-time" },
+    locationType: { type: String, enum: LOCATION_TYPES, default: "onsite" },
     location: { type: String, default: "" },
-    locationType: { type: String, enum: ["onsite", "hybrid", "remote"], default: "onsite" },
     startDate: { type: Date, required: true },
     endDate: { type: Date, default: null },
     current: { type: Boolean, default: false },
     highlights: localizedList(),
+    skills: { type: [String], default: [] },
+    media: { type: [galleryImageSchema], default: [] },
+  },
+  { _id: false },
+);
+
+/**
+ * One document per company, holding every title held there.
+ *
+ * Was one document per position, which could not express the thing a CV has to:
+ * two jobs at once. Sorted by start date, three roles at one employer and three
+ * at another interleave into six fragments, and the reader has to reassemble
+ * both histories themselves.
+ *
+ * The company itself is a `Partner`. That collection already stores a name, a
+ * logo and a URL, and already backs the partners credited on projects — a second
+ * company store would be the same records under a different name, free to
+ * disagree about which logo is current.
+ */
+const experienceSchema = new Schema(
+  {
+    partner: { type: Schema.Types.ObjectId, ref: "Partner", required: true, index: true },
+    positions: { type: [experiencePositionSchema], default: [] },
+
+    /* Legacy, read-only — see `normalizeExperience` in queries.ts. Documents
+       written before the restructure keep these, and the read layer folds them
+       into a single position so the page renders before the migration runs. */
+    company: String,
+    companyUrl: String,
+    logo: { type: imageSchema, required: false },
+    position: localized(false),
+    employmentType: String,
+    location: String,
+    locationType: String,
+    startDate: Date,
+    endDate: Date,
+    current: Boolean,
+    highlights: localizedList(),
     techStack: { type: [String], default: [] },
+
     ...baseFields,
   },
   baseSchemaOptions,
 );
-experienceSchema.index({ status: 1, startDate: -1 });
+experienceSchema.index({ status: 1, order: 1 });
 
 /* ── Mentoring ────────────────────────────────────────────────────────────── */
 const mentoringTrackSchema = new Schema(
@@ -314,6 +350,10 @@ const siteConfigSchema = new Schema(
     tagline: localized(false),
     bio: localized(false),
     avatar: { type: imageSchema, required: false },
+    // Separate from `avatar` on purpose: the hero wants a full cut-out on a
+    // transparent background, which is a different photograph from a headshot,
+    // not a different crop of one.
+    heroPhoto: { type: imageSchema, required: false },
     resumeUrl: String,
     email: { type: String, default: "" },
     location: { type: String, default: "" },

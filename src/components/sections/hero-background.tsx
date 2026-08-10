@@ -92,33 +92,45 @@ export function HeroBackground() {
     createParticles();
     draw();
 
-    window.addEventListener("resize", () => {
+    // Named, because the cleanup has to remove *this* function. Removing
+    // `resize` while an anonymous wrapper was registered detached nothing, so
+    // every mount left a listener behind.
+    const onResize = () => {
       resize();
       createParticles();
-    });
+    };
+    window.addEventListener("resize", onResize);
 
     return () => {
       cancelAnimationFrame(animationId);
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
   return (
-    <>
-      <canvas
-        ref={canvasRef}
-        className="pointer-events-none fixed inset-0 h-full w-full"
-      />
-      {/* Gradient overlays */}
+    // One clipped, fixed, behind-everything layer — the same shape as
+    // `LabBackground`, and for two reasons.
+    //
+    // `overflow-hidden`: the glow below is 384px wide at 25% of the viewport,
+    // so on a 390px phone its right edge landed at 481px and widened the whole
+    // document. That is what made the page scroll sideways and left the header
+    // capsule looking off-centre when zoomed out.
+    //
+    // `-z-10`: positioned elements paint above non-positioned content, so a
+    // `fixed` canvas with an auto z-index was drawing its particles on top of
+    // the text rather than behind it.
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.5 }}
-        className="pointer-events-none absolute inset-0"
+        className="absolute inset-0"
       >
-        <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/5 blur-[100px]" />
-        <div className="absolute bottom-1/4 right-1/4 h-64 w-64 rounded-full bg-secondary/5 blur-[80px]" />
+        <div className="bg-primary/5 absolute top-1/4 left-1/4 h-96 w-96 rounded-full blur-[100px]" />
+        <div className="bg-secondary/5 absolute right-1/4 bottom-1/4 h-64 w-64 rounded-full blur-[80px]" />
       </motion.div>
-    </>
+    </div>
   );
 }

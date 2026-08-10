@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
 import { GlassPanel } from "@/components/glass/glass-panel";
-import { EmptyState, Section, SectionHeading } from "@/components/lab/section";
+import { Section, SectionHeading } from "@/components/lab/section";
 import { About } from "@/components/sections/about";
 import {
   ArticleList,
@@ -49,111 +49,103 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <Hero config={config} locale={locale} />
       <About config={config} locale={locale} />
 
-      <Section id="projects">
-        <SectionHeading
-          eyebrow={t("projects.eyebrow")}
-          title={t("projects.title")}
-          description={t("projects.description")}
-          href="/projects"
-          cta={t("projects.cta")}
-        />
-        <div className="mt-10">
-          {projects.length ? (
+      {/* Empty collections are left out entirely rather than rendered as an
+          empty state. On a listing page "nothing published yet" is the honest
+          answer to what the visitor asked for; on the home page it is a heading
+          and a paragraph promising something that is not there. */}
+      {projects.length > 0 && (
+        <Section id="projects">
+          <SectionHeading
+            eyebrow={t("projects.eyebrow")}
+            title={t("projects.title")}
+            description={t("projects.description")}
+            href="/projects"
+            cta={t("projects.cta")}
+          />
+          <div className="mt-10">
             <ProjectGrid items={projects} locale={locale} />
-          ) : (
-            <EmptyState message={t("projects.empty")} />
-          )}
-        </div>
-      </Section>
+          </div>
+        </Section>
+      )}
 
-      <Section id="experience">
-        <SectionHeading
-          eyebrow={t("experience.eyebrow")}
-          title={t("experience.title")}
-          description={t("experience.description")}
-          href="/experience"
-          cta={t("experience.cta")}
-        />
-        <div className="mt-10">
-          {experience.length ? (
+      {experience.length > 0 && (
+        <Section id="experience">
+          <SectionHeading
+            eyebrow={t("experience.eyebrow")}
+            title={t("experience.title")}
+            description={t("experience.description")}
+            href="/experience"
+            cta={t("experience.cta")}
+          />
+          <div className="mt-10">
             <ExperienceTimeline items={experience} locale={locale} limit={3} />
-          ) : (
-            <EmptyState message={t("experience.empty")} />
-          )}
-        </div>
-      </Section>
+          </div>
+        </Section>
+      )}
 
-      <Section id="mentoring">
-        <SectionHeading
-          eyebrow={t("mentoring.eyebrow")}
-          title={t("mentoring.title")}
-          description={t("mentoring.description")}
-          href="/mentoring"
-          cta={t("mentoring.cta")}
-        />
-        <div className="mt-10">
-          {mentoring.length ? (
+      {mentoring.length > 0 && (
+        <Section id="mentoring">
+          <SectionHeading
+            eyebrow={t("mentoring.eyebrow")}
+            title={t("mentoring.title")}
+            description={t("mentoring.description")}
+            href="/mentoring"
+            cta={t("mentoring.cta")}
+          />
+          <div className="mt-10">
             <MentoringGrid items={mentoring} locale={locale} />
-          ) : (
-            <EmptyState message={t("mentoring.empty")} />
-          )}
-        </div>
-      </Section>
+          </div>
+        </Section>
+      )}
 
-      <Section id="articles">
-        <SectionHeading
-          eyebrow={t("articles.eyebrow")}
-          title={t("articles.title")}
-          description={t("articles.description")}
-          href="/articles"
-          cta={t("articles.cta")}
-        />
-        <div className="mt-10">
-          {articles.length ? (
+      {articles.length > 0 && (
+        <Section id="articles">
+          <SectionHeading
+            eyebrow={t("articles.eyebrow")}
+            title={t("articles.title")}
+            description={t("articles.description")}
+            href="/articles"
+            cta={t("articles.cta")}
+          />
+          <div className="mt-10">
             <ArticleList
               items={articles}
               locale={locale}
               readingTimeLabel={(minutes) => t("articles.readingTime", { minutes })}
             />
-          ) : (
-            <EmptyState message={t("articles.empty")} />
-          )}
-        </div>
-      </Section>
+          </div>
+        </Section>
+      )}
 
-      <Section id="testimonials">
-        <SectionHeading
-          eyebrow={t("testimonials.eyebrow")}
-          title={t("testimonials.title")}
-          description={t("testimonials.description")}
-          href="/testimonials"
-          cta={t("testimonials.cta")}
-        />
-        <div className="mt-10">
-          {testimonials.length ? (
+      {testimonials.length > 0 && (
+        <Section id="testimonials">
+          <SectionHeading
+            eyebrow={t("testimonials.eyebrow")}
+            title={t("testimonials.title")}
+            description={t("testimonials.description")}
+            href="/testimonials"
+            cta={t("testimonials.cta")}
+          />
+          <div className="mt-10">
             <TestimonialGrid items={testimonials} locale={locale} />
-          ) : (
-            <EmptyState message={t("testimonials.empty")} />
-          )}
-        </div>
-      </Section>
+          </div>
+        </Section>
+      )}
 
-      <Section id="open-source">
-        <SectionHeading
-          eyebrow={t("openSource.eyebrow")}
-          title={t("openSource.title")}
-          description={t("openSource.description")}
-          href="/open-source"
-          cta={t("openSource.cta")}
-        />
-        <div className="mt-10">
-          {openSource.length ? (
+      {openSource.length > 0 && (
+        <Section id="open-source">
+          <SectionHeading
+            eyebrow={t("openSource.eyebrow")}
+            title={t("openSource.title")}
+            description={t("openSource.description")}
+            href="/open-source"
+            cta={t("openSource.cta")}
+          />
+          <div className="mt-10">
             <OpenSourceGrid items={openSource} locale={locale} />
-          ) : (
-            <EmptyState message={t("openSource.empty")} />
-          )}
-        </div>
-      </Section>
+          </div>
+        </Section>
+      )}
 
       <Section>
         {/* The page's closing surface, and the only lensed one besides the hero.

@@ -3,6 +3,7 @@ import "server-only";
 import {
   DEFAULT_GALLERY_COLS,
   DEFAULT_GALLERY_ROWS,
+  PUBLIC_PARTNER_KINDS,
   SPAN_TO_COLS,
   type GallerySpan,
 } from "./content-enums";
@@ -239,9 +240,21 @@ export async function getProjectSlugs(): Promise<string[]> {
   return docs.map((d) => String(d.slug));
 }
 
+/**
+ * Partners for the public partners page.
+ *
+ * Employers are excluded: the collection doubles as the company directory
+ * behind the experience timeline, but this page is about agencies delivered
+ * through and the clients the work was for. A former employer listed here would
+ * read as a claim about the wrong kind of relationship.
+ */
 export async function getPartners(): Promise<TPartner[]> {
   if (!(await ready())) return [];
-  return serialize<TPartner[]>(await Partner.find(PUBLISHED).sort({ order: 1 }).lean());
+  return serialize<TPartner[]>(
+    await Partner.find({ ...PUBLISHED, kind: { $in: PUBLIC_PARTNER_KINDS } })
+      .sort({ order: 1 })
+      .lean(),
+  );
 }
 
 /**
@@ -264,11 +277,80 @@ export async function getPartnerProjectCounts(): Promise<Record<string, number>>
   return Object.fromEntries(rows.map((row) => [String(row._id), row.count]));
 }
 
+/**
+ * Brings one experience document up to the company-and-positions shape.
+ *
+ * Documents written before the restructure are one position each, with the
+ * company details inline. They are folded into a single-position company here
+ * rather than left to the page, so the timeline keeps rendering in the window
+ * between deploying this and running `pnpm migrate:experience` — the same
+ * courtesy `normalizeProject` extends to pre-`team` projects.
+ *
+ * `skills` reads from `techStack` when absent: the field was renamed because
+ * what a role taught is not always a technology.
+ */
+function normalizeExperience(doc: Record<string, unknown>): Record<string, unknown> {
+  const positions = Array.isArray(doc.positions) ? (doc.positions as Record<string, unknown>[]) : [];
+
+  const fill = (position: Record<string, unknown>) => ({
+    ...position,
+    highlights: listOrEmpty(position.highlights),
+    skills: Array.isArray(position.skills)
+      ? position.skills
+      : Array.isArray(position.techStack)
+        ? position.techStack
+        : [],
+    media: Array.isArray(position.media) ? position.media : [],
+    location: position.location ?? "",
+    employmentType: position.employmentType ?? "full-time",
+    locationType: position.locationType ?? "onsite",
+    current: Boolean(position.current),
+    startDate: position.startDate ?? null,
+    endDate: position.endDate ?? null,
+    position: localizedOrEmpty(position.position),
+  });
+
+  // Only a document that actually carries the old inline fields is folded. A
+  // migrated company with no positions yet must stay empty rather than grow a
+  // blank row synthesised from itself.
+  const legacy = positions.length === 0 && Boolean(doc.position);
+
+  return {
+    ...doc,
+    partner: doc.partner ?? null,
+    positions: (positions.length > 0 ? positions : legacy ? [doc] : []).map(fill),
+  };
+}
+
+/**
+ * Companies worked at, each with its positions, most recent first.
+ *
+ * Ordered by the newest position rather than by a stored field: two employers
+ * held at once interleave by date, and sorting the documents themselves would
+ * put a company below one it overlapped with purely because its *oldest* role
+ * started first.
+ */
 export async function getExperience(): Promise<TExperience[]> {
   if (!(await ready())) return [];
-  // Most recent role first; an ongoing role has no endDate so startDate is the
-  // only field that orders the timeline correctly.
-  return serialize<TExperience[]>(await Experience.find(PUBLISHED).sort({ startDate: -1 }).lean());
+
+  // `match` is what stops an unpublished company record from being published by
+  // proxy. A non-match populates as null, which the timeline already handles
+  // for a deleted company.
+  const docs = (await Experience.find(PUBLISHED)
+    .populate({ path: "partner", match: PUBLISHED })
+    .lean()) as Record<string, unknown>[];
+
+  const latest = (doc: Record<string, unknown>) => {
+    const positions = (doc.positions ?? []) as { startDate?: string | Date | null }[];
+    const dates = [...positions.map((p) => p.startDate), doc.startDate as string | Date | null]
+      .filter(Boolean)
+      .map((value) => new Date(value as string).getTime());
+    return dates.length > 0 ? Math.max(...dates) : 0;
+  };
+
+  return serialize<TExperience[]>(
+    docs.sort((a, b) => latest(b) - latest(a)).map(normalizeExperience),
+  );
 }
 
 export async function getMentoringTracks({ limit }: { limit?: number } = {}) {

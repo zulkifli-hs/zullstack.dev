@@ -3,6 +3,7 @@
 import { Loader2, Plus, X } from "lucide-react";
 import { useActionState, useState } from "react";
 
+import { ImageField } from "@/components/admin/image-field";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,16 @@ export function SiteConfigForm({ config }: { config: Record<string, unknown> }) 
 
       <Bilingual label="Tagline" name="tagline" get={localized} />
       <Bilingual label="Bio" name="bio" get={localized} textarea />
+
+      <section className="grid gap-4">
+        <ImageField
+          name="heroPhoto"
+          label="Hero photo"
+          help="Shown beside the hero copy on the home page. A cut-out on a transparent background works best — the section has no frame for it to sit in."
+          value={config.heroPhoto as { url: string; publicId: string } | undefined}
+          folder="zullstack/site"
+        />
+      </section>
 
       <section>
         <Legend>Socials</Legend>

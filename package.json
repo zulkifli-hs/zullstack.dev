@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
     "migrate:projects": "tsx scripts/migrate-projects.ts",
+    "migrate:experience": "tsx scripts/migrate-experience.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm gen:lens --check && pnpm build",
     "create-admin": "tsx scripts/create-admin.ts",
     "cleanup-test-data": "tsx scripts/cleanup-test-data.ts",

@@ -6,7 +6,6 @@ import { CommandMenu } from "@/components/layout/command-menu";
 import { ContactCta } from "@/components/layout/contact-cta";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { NavLink } from "@/components/layout/nav-link";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { TransparencyToggle } from "@/components/layout/transparency-toggle";
 import { Link } from "@/i18n/navigation";
 import { contactChannels } from "@/lib/contact";
@@ -68,9 +67,10 @@ export async function SiteHeader() {
 
           <div className="ml-auto flex items-center gap-0.5">
             <CommandMenu />
+            {/* Theme lives inside this popover now — one settings surface
+                rather than two adjacent icons doing adjacent things. */}
             <TransparencyToggle />
             <LocaleSwitcher />
-            {/* <ThemeToggle /> */}
             {/* The capsule's right-hand anchor, as in the reference designs.
                 Hidden on mobile, where the floating button carries it instead —
                 two triggers, one surface. */}
