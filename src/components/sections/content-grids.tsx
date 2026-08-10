@@ -5,6 +5,7 @@ import { GlassPanel } from "@/components/glass/glass-panel";
 import { Tag } from "@/components/lab/section";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
+import { cloudinarySrc } from "@/lib/images/cloudinary";
 import { formatDate, pick, pickList } from "@/lib/utils";
 import type {
   Article,
@@ -22,9 +23,21 @@ import type {
  * component renders both the home-page preview and the full listing page, and
  * the two can never drift apart visually.
  *
- * All of them use the `flat` panel variant. Repeated backdrop-filtered surfaces
- * are the single most reliable way to drop frames on mid-range hardware, so
- * real glass is reserved for the one or two hero surfaces per page.
+ * Every card here is a real lens — `variant="lens"`, so the rim actually bends
+ * the grid behind it rather than only blurring it. That is a deliberate
+ * reversal of the earlier "flat content layer" rule, and it is worth being
+ * honest about the cost: a listing page renders 6–9 live backdrop surfaces
+ * instead of one, each a separate compositor snapshot, each running an SVG
+ * displacement pass.
+ *
+ * Three things make it affordable:
+ *   - the substrate is `LabBackground` — a fixed mesh gradient and a grid, the
+ *     cheapest possible thing to re-sample, and static while the page scrolls;
+ *   - cards keep `contain: paint`, so a card that scrolls out stops costing;
+ *   - the maps are cached by *geometry*, so a three-column grid of equally
+ *     sized cards shares one generated map and one `<filter>`, not nine.
+ *
+ * The blur itself never animates on hover — see the `lift` utility.
  */
 
 function take<T>(items: T[], limit?: number) {
@@ -43,7 +56,7 @@ export function MentoringGrid({
   return (
     <div className="grid gap-5 md:grid-cols-3">
       {take(items, limit).map((track) => (
-        <GlassPanel key={track.id} variant="flat">
+        <GlassPanel key={track.id} variant="lens" tier="card">
           <p className="lab-label text-signal">{track.level}</p>
           <h3 className="mt-3 text-lg font-semibold tracking-tight">{pick(track.track, locale)}</h3>
           <p className="text-muted-foreground mt-2 text-sm text-pretty">
@@ -86,13 +99,23 @@ export function ArticleList({
   readingTimeLabel: (minutes: number) => string;
 }) {
   return (
-    <div className="divide-hairline/60 divide-y">
+    // Rows, not a grid — an article is a headline plus a paragraph, and three
+    // columns of that reads as a wall. Each row is its own glass surface, so the
+    // separators that used to divide them are now the gaps between panels.
+    <div className="space-y-4">
       {take(items, limit).map((article) => (
-        <article key={article.id} className="group relative flex gap-5 py-6 first:pt-0">
+        <GlassPanel
+          key={article.id}
+          as="article"
+          variant="lens"
+          tier="card"
+          padding="sm"
+          className="group flex gap-5"
+        >
           {article.coverImage?.url && (
-            <div className="border-hairline/60 relative hidden aspect-4/3 w-32 shrink-0 overflow-hidden rounded-lg border sm:block">
+            <div className="rounded-concentric border-hairline/60 relative hidden aspect-4/3 w-32 shrink-0 overflow-hidden border sm:block">
               <Image
-                src={article.coverImage.url}
+                src={cloudinarySrc(article.coverImage)}
                 alt=""
                 fill
                 sizes="128px"
@@ -102,39 +125,36 @@ export function ArticleList({
           )}
 
           <div className="min-w-0 flex-1">
-          <div className="text-muted-foreground flex items-center gap-3 font-mono text-xs">
-            <time dateTime={article.publishedAt ?? undefined}>
-              {formatDate(article.publishedAt, locale, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
-            </time>
-            <span aria-hidden>·</span>
-            <span>{readingTimeLabel(article.readingTime)}</span>
-          </div>
+            <div className="text-muted-foreground flex items-center gap-3 font-mono text-xs">
+              <time dateTime={article.publishedAt ?? undefined}>
+                {formatDate(article.publishedAt, locale, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </time>
+              <span aria-hidden>·</span>
+              <span>{readingTimeLabel(article.readingTime)}</span>
+            </div>
 
-          <h3 className="mt-2 text-lg font-semibold tracking-tight">
-            <Link
-              href={`/articles/${article.slug}`}
-              className="after:absolute after:inset-0"
-            >
-              {pick(article.title, locale)}
-            </Link>
-          </h3>
+            <h3 className="mt-2 text-lg font-semibold tracking-tight">
+              <Link href={`/articles/${article.slug}`} className="after:absolute after:inset-0">
+                {pick(article.title, locale)}
+              </Link>
+            </h3>
 
-          <p className="text-muted-foreground mt-2 max-w-2xl text-sm text-pretty">
-            {pick(article.excerpt, locale)}
-          </p>
+            <p className="text-muted-foreground mt-2 max-w-2xl text-sm text-pretty">
+              {pick(article.excerpt, locale)}
+            </p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            {article.tags.map((tag) => (
-              <Tag key={tag}>{tag}</Tag>
-            ))}
-            <ArrowUpRight className="text-link ml-auto size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              {article.tags.map((tag) => (
+                <Tag key={tag}>{tag}</Tag>
+              ))}
+              <ArrowUpRight className="text-link ml-auto size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </div>
           </div>
-          </div>
-        </article>
+        </GlassPanel>
       ))}
     </div>
   );
@@ -152,7 +172,7 @@ export function TestimonialGrid({
   return (
     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {take(items, limit).map((testimonial) => (
-        <GlassPanel key={testimonial.id} variant="flat" className="flex flex-col">
+        <GlassPanel key={testimonial.id} variant="lens" tier="card" className="flex flex-col">
           <Quote aria-hidden className="text-signal size-5" />
           <blockquote className="mt-3 flex-1 text-sm text-pretty">
             {pick(testimonial.quote, locale)}
@@ -161,7 +181,7 @@ export function TestimonialGrid({
           <div className="border-hairline/60 mt-5 flex items-center gap-3 border-t pt-4">
             {testimonial.avatar?.url && (
               <Image
-                src={testimonial.avatar.url}
+                src={cloudinarySrc(testimonial.avatar)}
                 alt=""
                 width={36}
                 height={36}
@@ -202,7 +222,7 @@ export function ResourceGrid({
   return (
     <div className="grid gap-5 md:grid-cols-2">
       {take(items, limit).map((resource) => (
-        <GlassPanel key={resource.id} variant="flat" className="group relative">
+        <GlassPanel key={resource.id} variant="lens" tier="card" className="group relative">
           <div className="flex items-center gap-2">
             <p className="lab-label text-signal">{resource.type}</p>
             <span className="text-muted-foreground font-mono text-[0.6875rem]">
@@ -251,7 +271,7 @@ export function OpenSourceGrid({
   return (
     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {take(items, limit).map((repo) => (
-        <GlassPanel key={repo.id} variant="flat" className="group relative">
+        <GlassPanel key={repo.id} variant="lens" tier="card" className="group relative">
           <div className="flex items-center gap-2">
             <GitBranch aria-hidden className="size-4" />
             <p className="truncate font-mono text-sm font-semibold">
@@ -298,7 +318,7 @@ export function SnippetShowcase({
   return (
     <div className="space-y-6">
       {take(items, limit).map((snippet) => (
-        <GlassPanel key={snippet.id} variant="flat" padding="none" className="overflow-hidden">
+        <GlassPanel key={snippet.id} variant="lens" tier="card" padding="none" className="overflow-hidden">
           <div className="border-hairline/60 flex items-center gap-3 border-b px-5 py-3">
             <span aria-hidden className="flex gap-1.5">
               <span className="size-2.5 rounded-full bg-red-400/70" />

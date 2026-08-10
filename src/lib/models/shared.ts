@@ -1,18 +1,27 @@
 import { Schema, type SchemaDefinitionProperty } from "mongoose";
 
-/** A string that exists in both site languages. */
-export type Localized = { en: string; id: string };
+import type { GalleryGroup, GalleryImage, Localized, ProjectLink, StoredImage } from "@/lib/content-enums";
+import {
+  CROP_RATIOS,
+  DEFAULT_GALLERY_COLS,
+  DEFAULT_GALLERY_ROWS,
+  GALLERY_COLS,
+  GALLERY_FITS,
+  GALLERY_ROWS,
+  LINK_ACCESS,
+  LINK_KINDS,
+  PARTNER_ROLES,
+} from "@/lib/content-enums";
 
-/** An image stored in Cloudinary. `publicId` is what lets us delete/transform it. */
-export type StoredImage = {
-  url: string;
-  publicId: string;
-  alt?: Localized;
-  width?: number;
-  height?: number;
-};
-
-export type PublishStatus = "draft" | "published";
+/**
+ * Mongoose building blocks.
+ *
+ * The vocabulary itself — every enum and plain shape — lives in
+ * `lib/content-enums.ts` so client components can import an option list without
+ * dragging the driver into the browser bundle. Re-exported here so server code
+ * has a single import site.
+ */
+export * from "@/lib/content-enums";
 
 /**
  * Bilingual field factory.
@@ -57,11 +66,83 @@ export const imageSchema = new Schema<StoredImage>(
     },
     width: Number,
     height: Number,
+    // Cropping is non-destructive: only the rectangle is stored and Cloudinary
+    // applies it at delivery, so it can be adjusted or removed at any time
+    // without the original ever having been overwritten.
+    crop: {
+      _id: false,
+      type: { x: Number, y: Number, w: Number, h: Number },
+      required: false,
+      default: null,
+    },
+    ratio: { type: String, enum: CROP_RATIOS, default: "original" },
   },
   { _id: false },
 );
 
-/** Fields every piece of content carries, so listing/ordering logic is uniform. */
+/**
+ * A gallery image carries a caption on top of everything a stored image has.
+ *
+ * `width`/`height` are not decoration here — the public gallery lays images out
+ * at their real aspect ratio so a 16:9 desktop capture and a 9:16 phone capture
+ * can sit side by side uncropped, and that is impossible without the dimensions
+ * Cloudinary returns at upload time.
+ */
+export const galleryImageSchema = new Schema<GalleryImage>(
+  {
+    ...imageSchema.obj,
+    caption: {
+      _id: false,
+      type: { en: { type: String, default: "" }, id: { type: String, default: "" } },
+      required: false,
+    },
+    // Columns and rows, so placement is two-dimensional rather than a single
+    // width that can only ever flow left to right.
+    cols: { type: Number, enum: GALLERY_COLS, default: DEFAULT_GALLERY_COLS },
+    rows: { type: Number, enum: GALLERY_ROWS, default: DEFAULT_GALLERY_ROWS },
+    fit: { type: String, enum: GALLERY_FITS, default: "cover" },
+    group: { type: String, default: "" },
+  },
+  { _id: false },
+);
+
+export const galleryGroupSchema = new Schema<GalleryGroup>(
+  {
+    key: { type: String, required: true, trim: true },
+    label: {
+      _id: false,
+      type: { en: { type: String, default: "" }, id: { type: String, default: "" } },
+      required: false,
+    },
+  },
+  { _id: false },
+);
+
+export const projectLinkSchema = new Schema<ProjectLink>(
+  {
+    kind: { type: String, enum: LINK_KINDS, default: "live" },
+    // Empty falls back to the translated label for `kind`, so the common case
+    // needs no typing and stays bilingual for free.
+    label: {
+      _id: false,
+      type: { en: { type: String, default: "" }, id: { type: String, default: "" } },
+      required: false,
+    },
+    url: { type: String, default: "" },
+    access: { type: String, enum: LINK_ACCESS, default: "public" },
+  },
+  { _id: false },
+);
+
+export const projectPartnerSchema = new Schema(
+  {
+    partner: { type: Schema.Types.ObjectId, ref: "Partner", required: true },
+    role: { type: String, enum: PARTNER_ROLES, default: "client" },
+    url: { type: String, default: "" },
+  },
+  { _id: false },
+);
+
 export const baseFields = {
   status: { type: String, enum: ["draft", "published"], default: "draft", index: true },
   order: { type: Number, default: 0 },

@@ -200,6 +200,23 @@ export const experience = [
   },
 ];
 
+/**
+ * Agencies and clients projects can be attributed to.
+ *
+ * Empty by design: partners are real organisations, and inventing placeholder
+ * ones would put fabricated credits on a portfolio the moment anyone ran the
+ * seed. Add them through the admin CMS, then link them from a project.
+ */
+export const partners: {
+  slug: string;
+  name: string;
+  url?: string;
+  kind: "agency" | "client" | "both";
+  description?: { en: string; id: string };
+  order: number;
+  status: "draft" | "published";
+}[] = [];
+
 export const projects = [
   {
     slug: "saman-anti-fraud-monitoring",
@@ -215,10 +232,11 @@ export const projects = [
       en: "Led project delivery and contributed to frontend development of SAMAN, built for the Inspectorate General of the Ministry of Culture. Key features include real-time fraud alert notifications via Server-Sent Events; AI-powered document analysis that automatically reads and flags uploaded files for suspicious patterns; facial recognition for identity verification; and a violation scoring engine that calculates risk scores per individual or transaction. The platform enables risk-based internal auditing and data-driven governance across the ministry's programs and budget cycles.",
       id: "Memimpin pengiriman proyek dan turut mengembangkan frontend SAMAN, dibangun untuk Inspektorat Jenderal Kementerian Kebudayaan. Fitur utamanya mencakup notifikasi peringatan fraud real-time melalui Server-Sent Events; analisis dokumen berbasis AI yang otomatis membaca dan menandai berkas dengan pola mencurigakan; pengenalan wajah untuk verifikasi identitas; dan mesin penilaian pelanggaran yang menghitung skor risiko per individu atau transaksi. Platform ini memungkinkan audit internal berbasis risiko dan tata kelola berbasis data di seluruh program dan siklus anggaran kementerian.",
     },
-    category: "web",
+    platforms: ["web"],
+    lifecycle: "live",
     techStack: ["Next.js", "Express.js", "REST API", "Server-Sent Events", "AI Document Analysis", "Face Recognition"],
     role: { en: "Project Manager & Frontend Lead", id: "Project Manager & Frontend Lead" },
-    liveUrl: "https://saman.kemenbud.go.id",
+    links: [{ kind: "live", access: "public", url: "https://saman.kemenbud.go.id" }],
     featured: true,
     year: 2025,
     order: 1,
@@ -235,10 +253,11 @@ export const projects = [
       en: "Developed the official super app for HIPMI, a national organization representing young business owners across Indonesia. The admin dashboard was built with React.js and Redux for advanced state management, supporting complex data flows across member management, event coordination, and content moderation. The mobile app features digital membership cards with QR verification, a real-time curated news feed, member registration and dues payment, national event management, and career resources.",
       id: "Mengembangkan super app resmi HIPMI, organisasi nasional yang mewakili pengusaha muda di seluruh Indonesia. Dashboard admin dibangun dengan React.js dan Redux untuk state management tingkat lanjut, menopang alur data kompleks pada manajemen anggota, koordinasi acara, dan moderasi konten. Aplikasi mobile-nya memiliki kartu anggota digital dengan verifikasi QR, feed berita kurasi real-time, pendaftaran anggota dan pembayaran iuran, manajemen acara nasional, serta sumber daya karier.",
     },
-    category: "mobile",
+    platforms: ["mobile"],
+    lifecycle: "live",
     techStack: ["React.js", "Redux", "React Native", "Next.js", "Express.js", "MongoDB", "Firebase Cloud Messaging"],
     role: { en: "Frontend & Mobile Developer", id: "Frontend & Mobile Developer" },
-    liveUrl: "https://hipmigo.co.id",
+    links: [{ kind: "live", access: "public", url: "https://hipmigo.co.id" }],
     featured: true,
     year: 2024,
     order: 2,
@@ -255,10 +274,11 @@ export const projects = [
       en: "Built and currently operating a career services platform targeting the Malaysian job market. The platform is owned by a Malaysia-based client and built for Malaysian users, with payment processing in Ringgit Malaysia via SenangPay (powered by DOKU). Features include AI-assisted CV analysis and ATS scoring, intelligent resume feedback powered by LLM APIs, and job matching. Architected the complete full-stack system including LLM integration, production-grade payment workflows with MYR currency handling, and user authentication.",
       id: "Membangun dan hingga kini mengoperasikan platform layanan karier yang menyasar pasar kerja Malaysia. Platform ini dimiliki klien yang berbasis di Malaysia dan dibuat untuk pengguna Malaysia, dengan pemrosesan pembayaran dalam Ringgit Malaysia via SenangPay (didukung DOKU). Fiturnya mencakup analisis CV dan penilaian ATS berbantuan AI, masukan resume cerdas bertenaga LLM API, serta pencocokan pekerjaan. Merancang keseluruhan sistem full-stack termasuk integrasi LLM, alur pembayaran siap production dengan penanganan mata uang MYR, dan autentikasi pengguna.",
     },
-    category: "web",
+    platforms: ["web"],
+    lifecycle: "live",
     techStack: ["Next.js", "Express.js", "Node.js", "MongoDB", "OpenAI API", "Claude API", "SenangPay (DOKU)"],
     role: { en: "Full-Stack Developer (solo)", id: "Full-Stack Developer (solo)" },
-    liveUrl: "https://culminaite.com",
+    links: [{ kind: "live", access: "public", url: "https://culminaite.com" }],
     featured: true,
     year: 2025,
     order: 3,
@@ -278,10 +298,11 @@ export const projects = [
       en: "Built a centralized SaaS platform for interior design firms to manage commercial office projects end-to-end, consolidating cross-team collaboration into a single platform. The system is designed for multiple roles within a firm — Project Managers, Designers, Finance, Sales, and Admin — each with tailored views and permissions. Core features include a Bill of Quantities builder with auto-calculation and product catalog, an interactive Gantt chart for timeline and milestone tracking, invoice and payment term management, CAD/3D asset storage, and AI-powered cost estimation and material recommendations.",
       id: "Membangun platform SaaS terpusat bagi firma desain interior untuk mengelola proyek kantor komersial dari hulu ke hilir, menyatukan kolaborasi lintas tim dalam satu platform. Sistem ini dirancang untuk beragam peran dalam firma — Project Manager, Desainer, Finance, Sales, dan Admin — masing-masing dengan tampilan dan izin tersendiri. Fitur utamanya mencakup pembangun Bill of Quantities dengan perhitungan otomatis dan katalog produk, Gantt chart interaktif untuk pelacakan timeline dan milestone, manajemen invoice dan termin pembayaran, penyimpanan aset CAD/3D, serta estimasi biaya dan rekomendasi material berbasis AI.",
     },
-    category: "web",
+    platforms: ["web"],
+    lifecycle: "live",
     techStack: ["Next.js", "Express.js", "Node.js", "MongoDB", "OpenAI API", "Tailwind CSS"],
     role: { en: "Full-Stack Developer (solo)", id: "Full-Stack Developer (solo)" },
-    liveUrl: "https://idbuildapp.com",
+    links: [{ kind: "live", access: "public", url: "https://idbuildapp.com" }],
     featured: true,
     year: 2025,
     order: 4,
@@ -301,7 +322,8 @@ export const projects = [
       en: "Built a web-based Origin-Destination analytics platform for the Greater Jakarta Transportation Management Agency (BPTJ), integrating commuter data from multiple public transit operators across the metro region. Delivered advanced visualizations including flow maps of thousands of simultaneous passenger movements between origin-destination pairs, anomaly detection for unusual movement patterns, peak-hour heatmaps by time and location, and per-mode breakdowns across transit types. The platform serves as a decision support system enabling government planners to make evidence-based decisions on transit network expansion.",
       id: "Membangun platform analitik Origin-Destination berbasis web untuk Badan Pengelola Transportasi Jabodetabek (BPTJ), mengintegrasikan data komuter dari sejumlah operator transportasi publik di wilayah metropolitan. Menghadirkan visualisasi tingkat lanjut berupa flow map ribuan pergerakan penumpang simultan antar pasangan asal-tujuan, deteksi anomali untuk pola pergerakan tak biasa, heatmap jam sibuk berdasarkan waktu dan lokasi, serta rincian per moda transportasi. Platform ini berfungsi sebagai sistem pendukung keputusan yang memungkinkan perencana pemerintah mengambil keputusan berbasis bukti untuk perluasan jaringan transit.",
     },
-    category: "web",
+    platforms: ["web"],
+    lifecycle: "live",
     techStack: ["React.js", "Express.js", "Node.js", "MongoDB", "Leaflet.js", "D3.js", "Machine Learning"],
     role: { en: "Frontend Developer", id: "Frontend Developer" },
     featured: false,
@@ -323,7 +345,8 @@ export const projects = [
       en: "Developed a centralized master plan monitoring dashboard for the Greater Jakarta Transportation Management Agency (BPTJ), under the Ministry of Transportation — tracking the Jabodetabek Integrated Transportation Master Plan across multiple government stakeholders spanning Jakarta, Bogor, Depok, Tangerang and Bekasi. The platform consolidates progress data, KPI achievement, and budget absorption from numerous agencies and local governments into a single unified view with interactive maps, milestone tracking, and real-time reporting.",
       id: "Mengembangkan dashboard monitoring rencana induk terpusat untuk Badan Pengelola Transportasi Jabodetabek (BPTJ) di bawah Kementerian Perhubungan — memantau Rencana Induk Transportasi Jabodetabek lintas pemangku kepentingan pemerintah di Jakarta, Bogor, Depok, Tangerang, dan Bekasi. Platform ini menyatukan data progres, capaian KPI, dan serapan anggaran dari banyak instansi dan pemerintah daerah ke dalam satu tampilan terpadu dengan peta interaktif, pelacakan milestone, dan pelaporan real-time.",
     },
-    category: "web",
+    platforms: ["web"],
+    lifecycle: "live",
     techStack: ["React.js", "Express.js", "Node.js", "PostgreSQL", "REST API", "Interactive Mapping"],
     role: { en: "Full-Stack Developer", id: "Full-Stack Developer" },
     featured: false,
@@ -343,10 +366,11 @@ export const projects = [
       en: "Developed WikiExport for the Indonesian Chamber of Commerce and Industry (KADIN), a bilingual web platform that facilitates product showcasing, online sales, auctions, and international trade collaboration — particularly with Japanese partners. The platform enables businesses to list and sell products, participate in real-time auctions, and engage in cross-border trade initiatives, with intuitive navigation and seamless language switching.",
       id: "Mengembangkan WikiExport untuk Kamar Dagang dan Industri Indonesia (KADIN), platform web dwibahasa yang memfasilitasi etalase produk, penjualan online, lelang, dan kolaborasi dagang internasional — khususnya dengan mitra Jepang. Platform ini memungkinkan pelaku usaha memasang dan menjual produk, mengikuti lelang real-time, serta terlibat dalam inisiatif dagang lintas negara, dengan navigasi intuitif dan pergantian bahasa yang mulus.",
     },
-    category: "web",
+    platforms: ["web"],
+    lifecycle: "live",
     techStack: ["React.js", "Next.js", "Express.js", "Node.js", "React Native", "MongoDB", "REST API"],
     role: { en: "Full-Stack Developer", id: "Full-Stack Developer" },
-    liveUrl: "https://wikiexport.jp",
+    links: [{ kind: "live", access: "public", url: "https://wikiexport.jp" }],
     featured: false,
     year: 2022,
     order: 7,
@@ -366,7 +390,8 @@ export const projects = [
       en: "Developed a comprehensive digital platform for managing incoming and outgoing letters, dispositions, and tracking for the Directorate General of Infrastructure, Ministry of Transportation. The system digitizes the entire correspondence workflow, incorporating secure digital signatures, automated notifications, centralized archiving, and real-time tracking to improve accountability and transparency across the full lifecycle of correspondence from creation to resolution.",
       id: "Mengembangkan platform digital menyeluruh untuk mengelola surat masuk dan keluar, disposisi, dan pelacakannya bagi Direktorat Jenderal Prasarana, Kementerian Perhubungan. Sistem ini mendigitalkan seluruh alur persuratan, mencakup tanda tangan digital yang aman, notifikasi otomatis, pengarsipan terpusat, dan pelacakan real-time untuk meningkatkan akuntabilitas dan transparansi sepanjang siklus surat dari pembuatan hingga penyelesaian.",
     },
-    category: "web",
+    platforms: ["web"],
+    lifecycle: "live",
     techStack: ["React.js", "Express.js", "Node.js", "React Native", "MongoDB", "REST API"],
     role: { en: "Full-Stack Developer", id: "Full-Stack Developer" },
     featured: false,
@@ -388,10 +413,11 @@ export const projects = [
       en: "Built and currently operating the official digital platform for ADIGSI, supporting the organization's public presence, member engagement, and digital ecosystem initiatives. Architected and developed the complete full-stack platform including a content management system for news, events and a knowledge hub, membership registration and management workflows, a role-based administration dashboard, an authentication system, and a responsive public website.",
       id: "Membangun dan hingga kini mengoperasikan platform digital resmi ADIGSI, menopang kehadiran publik organisasi, keterlibatan anggota, dan inisiatif ekosistem digitalnya. Merancang dan mengembangkan platform full-stack lengkap termasuk sistem manajemen konten untuk berita, acara, dan knowledge hub, alur pendaftaran dan pengelolaan keanggotaan, dashboard administrasi berbasis peran, sistem autentikasi, serta situs publik yang responsif.",
     },
-    category: "web",
+    platforms: ["web"],
+    lifecycle: "live",
     techStack: ["Next.js", "MongoDB", "Radix UI", "Zod", "Tailwind CSS"],
     role: { en: "Full-Stack Developer", id: "Full-Stack Developer" },
-    liveUrl: "https://adigsi.id",
+    links: [{ kind: "live", access: "public", url: "https://adigsi.id" }],
     featured: false,
     year: 2026,
     order: 9,
@@ -408,7 +434,8 @@ export const projects = [
       en: "Built a pet grooming booking and operations platform designed to streamline customer reservations and day-to-day service management. Developed the full-stack application including online appointment scheduling, customer and pet profile management, grooming history, service and pricing management, booking status tracking, and an administrative dashboard for operational workflows.",
       id: "Membangun platform pemesanan dan operasional grooming hewan untuk merapikan reservasi pelanggan dan pengelolaan layanan sehari-hari. Mengembangkan aplikasi full-stack mencakup penjadwalan janji temu online, manajemen profil pelanggan dan hewan, riwayat grooming, manajemen layanan dan harga, pelacakan status pemesanan, serta dashboard administratif untuk alur kerja operasional.",
     },
-    category: "web",
+    platforms: ["web"],
+    lifecycle: "live",
     techStack: ["Next.js", "Nest.js", "TypeScript", "MongoDB", "Tailwind CSS", "Radix UI", "Zod"],
     role: { en: "Full-Stack Developer", id: "Full-Stack Developer" },
     featured: false,
@@ -427,7 +454,8 @@ export const projects = [
       en: "Built a mobile-first digital inspection platform for Krakatau Bandar Samudera, replacing paper-based quality control and asset inspection processes. Field inspectors capture photos, notes, and signatures directly on mobile devices with real-time sync to a centralized database, supported by customizable inspection templates, automated reporting, and an audit trail for compliance.",
       id: "Membangun platform inspeksi digital mobile-first untuk Krakatau Bandar Samudera, menggantikan proses kendali mutu dan inspeksi aset berbasis kertas. Inspektur lapangan merekam foto, catatan, dan tanda tangan langsung dari perangkat mobile dengan sinkronisasi real-time ke basis data terpusat, ditopang template inspeksi yang dapat disesuaikan, pelaporan otomatis, dan jejak audit untuk kepatuhan.",
     },
-    category: "mobile",
+    platforms: ["mobile"],
+    lifecycle: "live",
     // CONFLICT: CV lists React.js / Node.js / Firebase and dates this 2023.
     // The portfolio deck lists Laravel / Vue.js / Flutter / PostgreSQL and dates
     // it 2024. Using the CV stack — confirm which project version is being shown.
@@ -449,7 +477,8 @@ export const projects = [
       en: "Developed a centralized platform for managing member reception, automated membership number generation, and event coordination across a nationwide network of branches and regional divisions. The system enables member registration, profile management, and streamlined event organization, from branch meetings to regional conferences.",
       id: "Mengembangkan platform terpusat untuk mengelola penerimaan anggota, pembuatan nomor keanggotaan otomatis, dan koordinasi acara di jaringan cabang serta wilayah se-Indonesia. Sistem ini memungkinkan pendaftaran anggota, pengelolaan profil, dan penyelenggaraan acara yang lebih rapi, dari rapat cabang hingga konferensi wilayah.",
     },
-    category: "web",
+    platforms: ["web"],
+    lifecycle: "live",
     techStack: ["React.js", "Express.js", "Node.js", "MongoDB", "REST API"],
     role: { en: "Full-Stack Developer", id: "Full-Stack Developer" },
     featured: false,
@@ -468,7 +497,8 @@ export const projects = [
       en: "Built Warnas end-to-end — a social commerce platform combining a food review and recommendation feed with a marketplace, letting users share reviews, discover trending dishes, follow other food enthusiasts, and buy directly from partnered vendors. Also included business mentorship programs for small business owners, a frozen food marketplace, and in-app payments. Owned the entire product stack across CMS, landing page, mobile app and backend in a 2-person engineering team.",
       id: "Membangun Warnas dari hulu ke hilir — platform social commerce yang memadukan feed ulasan dan rekomendasi makanan dengan marketplace, memungkinkan pengguna berbagi ulasan, menemukan hidangan yang sedang tren, mengikuti sesama penikmat kuliner, dan membeli langsung dari mitra pedagang. Termasuk pula program mentorship usaha bagi pemilik UMKM, marketplace frozen food, dan pembayaran dalam aplikasi. Memegang keseluruhan stack produk mulai CMS, landing page, aplikasi mobile, hingga backend dalam tim engineering 2 orang.",
     },
-    category: "mobile",
+    platforms: ["mobile"],
+    lifecycle: "live",
     techStack: ["React.js", "Next.js", "React Native", "Express.js", "Node.js", "GraphQL", "MongoDB"],
     role: { en: "Full-Stack Developer", id: "Full-Stack Developer" },
     featured: false,

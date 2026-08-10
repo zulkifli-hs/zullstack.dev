@@ -1,6 +1,20 @@
 import { model, models, Schema } from "mongoose";
 
-import { baseFields, baseSchemaOptions, imageSchema, localized, localizedList } from "./shared";
+import {
+  baseFields,
+  baseSchemaOptions,
+  GALLERY_DISPLAYS,
+  galleryGroupSchema,
+  galleryImageSchema,
+  imageSchema,
+  LIFECYCLES,
+  localized,
+  localizedList,
+  PARTNER_KINDS,
+  PLATFORMS,
+  projectLinkSchema,
+  projectPartnerSchema,
+} from "./shared";
 
 /**
  * Every model below is registered through `models.X ?? model('X', …)`.
@@ -12,6 +26,33 @@ import { baseFields, baseSchemaOptions, imageSchema, localized, localizedList } 
  * data at runtime.
  */
 
+/* ── Partners ─────────────────────────────────────────────────────────────── */
+/**
+ * Agencies, studios and end clients — one collection, not two.
+ *
+ * The same company is routinely an agency on one engagement and the direct
+ * client on another, so splitting them into separate collections would mean
+ * duplicating the logo and the name and then keeping the copies in sync. `kind`
+ * records the usual relationship; the per-project `role` is what actually
+ * decides how a partner is captioned on a project page.
+ *
+ * Partners stand on their own: one can be published with no published project
+ * behind it, which is the only way to credit work that cannot be shown.
+ */
+const partnerSchema = new Schema(
+  {
+    slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    name: { type: String, required: true, trim: true },
+    logo: { type: imageSchema, required: false },
+    url: String,
+    kind: { type: String, enum: PARTNER_KINDS, default: "client", index: true },
+    description: localized(false),
+    ...baseFields,
+  },
+  baseSchemaOptions,
+);
+partnerSchema.index({ status: 1, order: 1 });
+
 /* ── Projects ─────────────────────────────────────────────────────────────── */
 const projectSchema = new Schema(
   {
@@ -19,17 +60,30 @@ const projectSchema = new Schema(
     title: localized(),
     summary: localized(),
     description: localized(),
-    category: {
-      type: String,
-      enum: ["web", "mobile", "backend", "devops", "other"],
-      default: "web",
-    },
+    /** The problem the work existed to solve — framing, shown above the body. */
+    problem: localized(false),
+    // Multi-valued: a single engagement is routinely a web app plus a phone app
+    // plus the CMS behind both, and forcing that into one category threw away
+    // the most interesting thing about it.
+    platforms: { type: [String], enum: PLATFORMS, default: ["web"], index: true },
+    // Where the work stands today. Deliberately separate from `status`, which
+    // is editorial: a sunsetted project is still worth publishing.
+    lifecycle: { type: String, enum: LIFECYCLES, default: "live" },
     techStack: { type: [String], default: [] },
     role: localized(false),
+    responsibilities: localizedList(),
+    outcomes: localizedList(),
+    startDate: { type: Date, default: null },
+    endDate: { type: Date, default: null },
+    teamSize: { type: Number, default: null },
     coverImage: { type: imageSchema, required: false },
-    gallery: { type: [imageSchema], default: [] },
-    repoUrl: String,
-    liveUrl: String,
+    gallery: { type: [galleryImageSchema], default: [] },
+    // Grouping is opt-in per project: a case study with forty screenshots needs
+    // sections, one with three would only be made harder to read by them.
+    galleryDisplay: { type: String, enum: GALLERY_DISPLAYS, default: "flat" },
+    galleryGroups: { type: [galleryGroupSchema], default: [] },
+    links: { type: [projectLinkSchema], default: [] },
+    partners: { type: [projectPartnerSchema], default: [] },
     featured: { type: Boolean, default: false, index: true },
     year: { type: Number, default: () => new Date().getFullYear() },
     ...baseFields,
@@ -39,6 +93,9 @@ const projectSchema = new Schema(
 // Listing pages always filter by status then sort by order/year — a compound
 // index matching that access pattern keeps it an index scan, not a collscan.
 projectSchema.index({ status: 1, featured: -1, order: 1, year: -1 });
+// The partners page asks the reverse question: which projects reference this
+// partner. Without this that is a collection scan per partner.
+projectSchema.index({ status: 1, "partners.partner": 1 });
 
 /* ── Experience ───────────────────────────────────────────────────────────── */
 const experienceSchema = new Schema(
@@ -267,6 +324,7 @@ const siteConfigSchema = new Schema(
 );
 
 export const Project = models.Project ?? model("Project", projectSchema);
+export const Partner = models.Partner ?? model("Partner", partnerSchema);
 export const Experience = models.Experience ?? model("Experience", experienceSchema);
 export const MentoringTrack = models.MentoringTrack ?? model("MentoringTrack", mentoringTrackSchema);
 export const Article = models.Article ?? model("Article", articleSchema);

@@ -1,6 +1,8 @@
 import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { GlassPanel } from "@/components/glass/glass-panel";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -67,20 +69,27 @@ export function Section({
   );
 }
 
-/** Consistent empty state, so an unseeded collection reads as intentional. */
+/**
+ * Consistent empty state, so an unseeded collection reads as intentional.
+ *
+ * Glass rather than the old dashed outline: a dashed border cannot coexist with
+ * the material, because `glass` spends the border on the rim-light gradient that
+ * makes the edge read as an edge.
+ */
 export function EmptyState({ message }: { message: string }) {
   return (
-    <div className="border-hairline/70 text-muted-foreground rounded-xl border border-dashed px-6 py-14 text-center text-sm">
+    <GlassPanel
+      variant="lens"
+      tier="card"
+      padding="none"
+      className="text-muted-foreground px-6 py-14 text-center text-sm"
+    >
       {message}
-    </div>
+    </GlassPanel>
   );
 }
 
 /** Small mono tag used for tech stack, topics and categories. */
 export function Tag({ children }: { children: ReactNode }) {
-  return (
-    <span className="border-hairline/70 bg-secondary/40 text-muted-foreground rounded-md border px-2 py-0.5 font-mono text-[0.6875rem]">
-      {children}
-    </span>
-  );
+  return <Badge shape="tag">{children}</Badge>;
 }
