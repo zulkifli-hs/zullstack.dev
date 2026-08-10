@@ -14,6 +14,7 @@ import {
   PLATFORMS,
   projectLinkSchema,
   projectPartnerSchema,
+  teamMemberSchema,
 } from "./shared";
 
 /**
@@ -75,6 +76,16 @@ const projectSchema = new Schema(
     outcomes: localizedList(),
     startDate: { type: Date, default: null },
     endDate: { type: Date, default: null },
+    team: { type: [teamMemberSchema], default: [] },
+    /**
+     * @deprecated Superseded by `team`, which says who those people were.
+     *
+     * Kept readable, and no longer offered in the CMS: documents written before
+     * `team` existed still carry it, and the page falls back to it so those
+     * projects do not silently lose their headcount. Saves are `$set` of the
+     * descriptor's fields, so dropping it from the form leaves stored values
+     * alone rather than erasing them.
+     */
     teamSize: { type: Number, default: null },
     coverImage: { type: imageSchema, required: false },
     gallery: { type: [galleryImageSchema], default: [] },

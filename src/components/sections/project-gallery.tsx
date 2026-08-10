@@ -21,49 +21,51 @@ import type { GalleryGroup, GalleryImage } from "@/types/content";
 /**
  * Span classes, written out rather than interpolated.
  *
- * Tailwind scans source text for complete class names, so `@xl:col-span-${n}`
- * would compile to nothing at all.
+ * Tailwind scans source text for complete class names, so `col-span-${n}` would
+ * compile to nothing at all.
+ *
+ * Unprefixed, so the bento holds at every width — see the grid below.
  */
 const COL_CLASS: Record<GalleryCols, string> = {
-  1: "@xl:col-span-1",
-  2: "@xl:col-span-2",
-  3: "@xl:col-span-3",
-  4: "@xl:col-span-4",
-  5: "@xl:col-span-5",
-  6: "@xl:col-span-6",
-  7: "@xl:col-span-7",
-  8: "@xl:col-span-8",
-  9: "@xl:col-span-9",
-  10: "@xl:col-span-10",
-  11: "@xl:col-span-11",
-  12: "@xl:col-span-12",
+  1: "col-span-1",
+  2: "col-span-2",
+  3: "col-span-3",
+  4: "col-span-4",
+  5: "col-span-5",
+  6: "col-span-6",
+  7: "col-span-7",
+  8: "col-span-8",
+  9: "col-span-9",
+  10: "col-span-10",
+  11: "col-span-11",
+  12: "col-span-12",
 };
 
 const ROW_CLASS: Record<GalleryRows, string> = {
-  1: "@xl:row-span-1",
-  2: "@xl:row-span-2",
-  3: "@xl:row-span-3",
-  4: "@xl:row-span-4",
-  5: "@xl:row-span-5",
-  6: "@xl:row-span-6",
-  7: "@xl:row-span-7",
-  8: "@xl:row-span-8",
-  9: "@xl:row-span-9",
-  10: "@xl:row-span-10",
-  11: "@xl:row-span-11",
-  12: "@xl:row-span-12",
-  13: "@xl:row-span-13",
-  14: "@xl:row-span-14",
-  15: "@xl:row-span-15",
-  16: "@xl:row-span-16",
-  17: "@xl:row-span-17",
-  18: "@xl:row-span-18",
-  19: "@xl:row-span-19",
-  20: "@xl:row-span-20",
-  21: "@xl:row-span-21",
-  22: "@xl:row-span-22",
-  23: "@xl:row-span-23",
-  24: "@xl:row-span-24",
+  1: "row-span-1",
+  2: "row-span-2",
+  3: "row-span-3",
+  4: "row-span-4",
+  5: "row-span-5",
+  6: "row-span-6",
+  7: "row-span-7",
+  8: "row-span-8",
+  9: "row-span-9",
+  10: "row-span-10",
+  11: "row-span-11",
+  12: "row-span-12",
+  13: "row-span-13",
+  14: "row-span-14",
+  15: "row-span-15",
+  16: "row-span-16",
+  17: "row-span-17",
+  18: "row-span-18",
+  19: "row-span-19",
+  20: "row-span-20",
+  21: "row-span-21",
+  22: "row-span-22",
+  23: "row-span-23",
+  24: "row-span-24",
 };
 
 type Labels = {
@@ -126,9 +128,11 @@ export function ProjectGallery({
           <div className="space-y-10">
             {sections.map((section) => (
               <section key={section.key}>
-                <h3 className="lab-label text-muted-foreground mb-3">
+                {/* `h2`, not `h3`: the page no longer prints a heading above the
+                    gallery, so these sit directly under the project's `h1`. */}
+                <h2 className="lab-label text-muted-foreground mb-3">
                   {pick(section.label, locale)}
-                </h3>
+                </h2>
                 <Grid
                   entries={section.entries}
                   locale={locale}
@@ -179,14 +183,20 @@ function Grid({
 }) {
   return (
     <ul
-      // Below @xl the grid collapses to a single column and spans are dropped:
-      // a twelve-column bento on a 390px screen is twelve unreadable slivers,
-      // and stacked full-width images are what a phone actually wants.
+      // The same twelve-column bento at every width. Collapsing to one full
+      // width column on a phone turned a dozen screenshots into a dozen screens
+      // of scrolling with no overview — and there is no need for a large image
+      // here, because tapping one opens it full size anyway.
+      //
+      // Only the row height changes across breakpoints, and it is chosen to
+      // track the column width so a cell keeps roughly its proportions: at
+      // 390px a column is ~21px and a row 10px; at 1104px they are ~81px and
+      // 44px. A 6x6 cell is 1.67:1 on the phone and 1.68:1 on the desktop.
       //
       // Written out in full — `grid-cols-${COUNT}` would compile to nothing,
       // because Tailwind matches complete class names in source text and never
       // sees the interpolated value.
-      className="grid grid-cols-1 gap-3 @xl:auto-rows-8 @xl:grid-flow-row-dense @xl:grid-cols-12 @4xl:auto-rows-11"
+      className="grid auto-rows-2.5 grid-flow-row-dense grid-cols-12 gap-2 @xl:auto-rows-8 @xl:gap-3 @4xl:auto-rows-11"
     >
       {entries.map(({ image, index }) => {
         const long = isLong(image);
@@ -223,11 +233,15 @@ function Grid({
                 alt={alt}
                 width={size.width || 1200}
                 height={size.height || 800}
-                sizes="(min-width: 1024px) 50vw, 100vw"
+                // Derived from the cell's own width rather than a flat 100vw, so
+                // a three-column thumbnail no longer downloads a full-width
+                // image. Twelfths of the gallery either way: ~1104px of column
+                // once the page stops growing, a share of the viewport below it.
+                sizes={`(min-width: 1200px) ${Math.round((colsOf(image) / 12) * 1104)}px, ${Math.round((colsOf(image) / 12) * 100)}vw`}
                 className={cn(
-                  "relative h-auto w-full",
+                  "relative h-full w-full",
                   contain
-                    ? "@xl:h-full @xl:object-contain"
+                    ? "object-contain"
                     : // `object-top` is `50% 0%`: the sides are trimmed evenly
                       // and only the bottom is cut, so the top of a screenshot
                       // — the part that identifies it — always survives.
@@ -236,22 +250,25 @@ function Grid({
                       // the CDN for a guessed cell aspect and then covering it
                       // again in CSS cropped the image twice, which is what
                       // made every cell look slightly and needlessly zoomed.
-                      "object-top @xl:h-full @xl:object-cover @xl:transition-transform @xl:duration-500 @xl:group-hover:scale-[1.02]",
+                      "object-top object-cover @xl:transition-transform @xl:duration-500 @xl:group-hover:scale-[1.02]",
                 )}
               />
 
+              {/* The label is dropped on a phone-sized cell, where it would
+                  cover the screenshot it is describing. The icon still reads. */}
               {long && !contain && (
-                <span className="text-muted-foreground bg-background/80 absolute top-2 right-2 inline-flex items-center gap-1 rounded-full px-2 py-1 font-mono text-[10px] backdrop-blur-sm">
+                <span className="text-muted-foreground bg-background/80 absolute top-1 right-1 inline-flex items-center gap-1 rounded-full px-1.5 py-1 font-mono text-[10px] backdrop-blur-sm @xl:top-2 @xl:right-2 @xl:px-2">
                   <MoveVertical className="size-3" />
-                  {labels.long}
+                  <span className="hidden @xl:inline">{labels.long}</span>
                 </span>
               )}
 
               {/* Inside the cell, not below it. A caption in normal flow
                   overflowed a fixed-height cell and collided with the row
-                  underneath. */}
+                  underneath. Clamped on small cells, where a long caption would
+                  otherwise cover the whole image. */}
               {caption && (
-                <span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 to-transparent px-3 pt-8 pb-2 text-left text-xs text-pretty text-white/90">
+                <span className="absolute inset-x-0 bottom-0 line-clamp-2 bg-linear-to-t from-black/75 to-transparent px-2 pt-6 pb-1.5 text-left text-[10px] text-pretty text-white/90 @xl:line-clamp-none @xl:px-3 @xl:pt-8 @xl:pb-2 @xl:text-xs">
                   {caption}
                 </span>
               )}

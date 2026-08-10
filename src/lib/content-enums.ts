@@ -124,6 +124,29 @@ export type GalleryImage = StoredImage & {
 
 export type GalleryGroup = { key: string; label: Localized };
 
+/* ── Team ─────────────────────────────────────────────────────────────────── */
+
+/**
+ * One group of people on a project, and whether I was one of them.
+ *
+ * A single headcount could not answer the question it appeared to: "5 people"
+ * never said whether that meant the whole engagement — designers, PM, QA — or
+ * only the engineers on the web build. Counting by group answers both at once,
+ * and `self` says where I actually sat.
+ *
+ * `role` is free text rather than an enum on purpose: the next project will
+ * have a title this list has never seen, and a closed set would mean a schema
+ * change every time that happens. Same register as `techStack`, which is also
+ * plain strings and also not translated — these are industry terms that read
+ * the same in both languages.
+ */
+export type TeamMember = {
+  role: string;
+  count: number;
+  /** Marks the group I was part of. More than one may be true. */
+  self?: boolean;
+};
+
 /* ── Links ────────────────────────────────────────────────────────────────── */
 
 /** What a project link points at. Drives the icon and the default label. */

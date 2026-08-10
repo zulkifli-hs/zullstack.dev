@@ -71,8 +71,15 @@ export function ProjectGrid({
 
             <div className="flex-1 p-6">
               <div className="flex items-start justify-between gap-3">
-                <p className="lab-label text-signal">{`{ ${project.platforms.join(" · ")} }`}</p>
-                <span className="lab-label text-muted-foreground tabular">{project.year}</span>
+                {/* Guarded: a project with no platforms rendered a bare `{  }`,
+                    which reads as a template that failed rather than as a
+                    project that has not been categorised. */}
+                {project.platforms.length > 0 && (
+                  <p className="lab-label text-signal">{`{ ${project.platforms.join(" · ")} }`}</p>
+                )}
+                <span className="lab-label text-muted-foreground tabular ml-auto">
+                  {project.year}
+                </span>
               </div>
 
               <h3 className="mt-3 flex items-start gap-2 text-lg font-semibold tracking-tight">

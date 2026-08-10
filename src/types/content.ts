@@ -14,6 +14,7 @@ import type {
   Platform,
   PublishStatus,
   StoredImage,
+  TeamMember,
 } from "@/lib/content-enums";
 
 export type {
@@ -32,6 +33,7 @@ export type {
   Platform,
   PublishStatus,
   StoredImage,
+  TeamMember,
 };
 
 type Base = {
@@ -89,6 +91,8 @@ export type Project = Base & {
   outcomes: { en: string[]; id: string[] };
   startDate: string | null;
   endDate: string | null;
+  team: TeamMember[];
+  /** @deprecated Read-only fallback for documents written before `team`. */
   teamSize: number | null;
   coverImage?: StoredImage;
   gallery: GalleryImage[];

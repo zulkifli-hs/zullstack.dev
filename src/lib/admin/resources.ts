@@ -92,7 +92,19 @@ export const RESOURCES: Record<ResourceKey, ResourceDef> = {
 
       { name: "startDate", label: "Start date", type: "date", group: "Timeline" },
       { name: "endDate", label: "End date", type: "date", group: "Timeline", help: "Leave empty if still ongoing." },
-      { name: "teamSize", label: "Team size", type: "number", group: "Timeline" },
+      {
+        name: "team",
+        label: "Team",
+        type: "repeater",
+        group: "Timeline",
+        addLabel: "Add group",
+        help: "One row per group, e.g. Frontend 2 · Backend 1 · Designer 1 · Project manager 1. A single headcount could not say whether it meant the whole engagement or just the engineers, so this counts by group. Tick Me on every group you were in — count yourself inside each one, and the total still counts you once.",
+        itemFields: [
+          { name: "role", label: "Group", type: "text", required: true },
+          { name: "count", label: "People", type: "number", required: true },
+          { name: "self", label: "Me", type: "boolean" },
+        ],
+      },
 
       { name: "coverImage", label: "Cover image", type: "image", group: "Media" },
       {
