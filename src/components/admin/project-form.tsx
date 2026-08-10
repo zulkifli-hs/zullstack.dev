@@ -3,10 +3,14 @@
 import { ArrowLeft, GripVertical, Loader2 } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useState, type Dispatch, type SetStateAction } from "react";
 
 import { FieldControl, groupFields } from "@/components/admin/field-control";
-import { GalleryStudio } from "@/components/admin/gallery-studio";
+import {
+  GalleryStudio,
+  toGalleryEntries,
+  type GalleryEntry,
+} from "@/components/admin/gallery-studio";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -95,6 +99,9 @@ export function ProjectForm({
   const [groups, setGroups] = useState<EditableGroup[]>(() =>
     withUids(Array.isArray(values.galleryGroups) ? (values.galleryGroups as GalleryGroup[]) : []),
   );
+  // Held here rather than inside the studio because the cover field offers the
+  // same images, and a list that two controls read cannot belong to one of them.
+  const [images, setImages] = useState<GalleryEntry[]>(() => toGalleryEntries(values.gallery));
 
   const sections = groupFields(fields);
 
@@ -163,6 +170,10 @@ export function ProjectForm({
                       field={field}
                       value={values[field.name]}
                       errors={state.errors}
+                      // The cover is nearly always one of the screenshots that
+                      // is already in the gallery, and uploading it twice meant
+                      // two assets to keep in step.
+                      pickFrom={field.name === "coverImage" ? images : undefined}
                     />
                   ),
                 )}
@@ -170,7 +181,8 @@ export function ProjectForm({
                 {section.fields.some((field) => MEDIA_OWNED.has(field.name)) && (
                   <GallerySection
                     fields={section.fields.filter((field) => MEDIA_OWNED.has(field.name))}
-                    values={values}
+                    images={images}
+                    setImages={setImages}
                     display={display}
                     setDisplay={setDisplay}
                     groups={groups}
@@ -196,14 +208,16 @@ function countErrors(field: Field, errors?: Record<string, string>): number {
 
 function GallerySection({
   fields,
-  values,
+  images,
+  setImages,
   display,
   setDisplay,
   groups,
   setGroups,
 }: {
   fields: Field[];
-  values: Record<string, unknown>;
+  images: GalleryEntry[];
+  setImages: Dispatch<SetStateAction<GalleryEntry[]>>;
   display: GalleryDisplay;
   setDisplay: (display: GalleryDisplay) => void;
   groups: EditableGroup[];
@@ -250,7 +264,8 @@ function GallerySection({
           name="gallery"
           label={galleryField.label}
           help={galleryField.help}
-          value={values.gallery}
+          images={images}
+          setImages={setImages}
           folder="zullstack/projects"
           groups={groups}
           display={display}

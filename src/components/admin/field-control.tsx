@@ -1,7 +1,7 @@
 "use client";
 
-import { GalleryStudio } from "@/components/admin/gallery-studio";
-import { ImageField } from "@/components/admin/image-field";
+import { GalleryStudioField } from "@/components/admin/gallery-studio";
+import { ImageField, type PickableImage } from "@/components/admin/image-field";
 import { MultiSelectField } from "@/components/admin/multiselect-field";
 import { RepeaterField } from "@/components/admin/repeater-field";
 import { RichTextField } from "@/components/admin/rich-text-field";
@@ -47,10 +47,18 @@ export function FieldControl({
   field,
   value,
   errors,
+  pickFrom,
 }: {
   field: Field;
   value: unknown;
   errors?: Record<string, string>;
+  /**
+   * Images this field may reuse instead of uploading, for `image` fields only.
+   *
+   * The project form passes its gallery here for the cover, which is nearly
+   * always one of the screenshots already in it.
+   */
+  pickFrom?: PickableImage[];
 }) {
   const localized = LOCALIZED_TYPES.has(field.type);
   const wide = field.wide || localized;
@@ -71,10 +79,16 @@ export function FieldControl({
             help={field.help}
             error={error}
             value={value as { url: string; publicId: string } | undefined}
+            pickFrom={pickFrom}
           />
         )}
         {field.type === "gallery" && (
-          <GalleryStudio name={field.name} label={field.label} help={field.help} value={value} />
+          <GalleryStudioField
+            name={field.name}
+            label={field.label}
+            help={field.help}
+            value={value}
+          />
         )}
         {field.type === "repeater" && (
           <RepeaterField

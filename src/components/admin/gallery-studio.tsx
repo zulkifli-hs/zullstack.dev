@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type Dispatch, type SetStateAction } from "react";
 
 import { ImageCropDialog } from "@/components/admin/image-crop-dialog";
 import { ProjectGallery } from "@/components/sections/project-gallery";
@@ -43,13 +43,16 @@ import {
 import { cn } from "@/lib/utils";
 import type { GalleryImage } from "@/types/content";
 
-type Entry = GalleryImage & {
+export type GalleryEntry = GalleryImage & {
   /** Client-only identity, stripped before submit. */
   __uid: string;
   /** Only known for images uploaded in this session. */
   __savedFrom?: number;
   __savedTo?: number;
 };
+
+/** Local alias, so the rest of this file reads as it did. */
+type Entry = GalleryEntry;
 
 let uid = 0;
 const nextUid = () => `img-${++uid}`;
@@ -64,6 +67,37 @@ const localized = (value: unknown): Localized => {
   const record = (value ?? {}) as Record<string, unknown>;
   return { en: String(record.en ?? ""), id: String(record.id ?? "") };
 };
+
+/**
+ * Reads a stored gallery array into editor entries.
+ *
+ * Exported because the list no longer belongs to this component alone — the
+ * project form holds it so the cover field can offer the same images, and it
+ * needs the same normalisation to hold it.
+ */
+export function toGalleryEntries(value: unknown): GalleryEntry[] {
+  return (Array.isArray(value) ? value : []).map((raw) => {
+    const image = raw as Record<string, unknown>;
+
+    return {
+      url: String(image.url ?? ""),
+      publicId: String(image.publicId ?? ""),
+      width: typeof image.width === "number" ? image.width : undefined,
+      height: typeof image.height === "number" ? image.height : undefined,
+      alt: localized(image.alt),
+      caption: localized(image.caption),
+      crop: (image.crop as CropRect | null) ?? null,
+      ratio: (image.ratio as CropRatio) ?? "original",
+      // Documents written before the grid gained a second axis carry `span`.
+      cols:
+        (image.cols as GalleryCols) ?? SPAN_TO_COLS[image.span as GallerySpan] ?? DEFAULT_GALLERY_COLS,
+      rows: (image.rows as GalleryRows) ?? DEFAULT_GALLERY_ROWS,
+      fit: (image.fit as GalleryFit) ?? "cover",
+      group: String(image.group ?? ""),
+      __uid: nextUid(),
+    };
+  });
+}
 
 /** Drops client-only keys before the entry is serialised for the server. */
 function forSubmit(entry: Entry) {
@@ -132,7 +166,8 @@ export function GalleryStudio({
   name,
   label,
   help,
-  value,
+  images,
+  setImages,
   folder,
   groups = [],
   display = "flat",
@@ -140,32 +175,17 @@ export function GalleryStudio({
   name: string;
   label: string;
   help?: string;
-  value?: unknown;
+  images: GalleryEntry[];
+  /**
+   * The state setter itself, not a plain callback: several uploads resolve
+   * independently, so each has to append to whatever the list is *then*. A
+   * callback closing over `images` would drop every file but the last.
+   */
+  setImages: Dispatch<SetStateAction<GalleryEntry[]>>;
   folder?: string;
   groups?: GalleryGroup[];
   display?: "flat" | "grouped";
 }) {
-  const [images, setImages] = useState<Entry[]>(() =>
-    (Array.isArray(value) ? value : []).map((raw) => {
-      const image = raw as Record<string, unknown>;
-      return {
-        url: String(image.url ?? ""),
-        publicId: String(image.publicId ?? ""),
-        width: typeof image.width === "number" ? image.width : undefined,
-        height: typeof image.height === "number" ? image.height : undefined,
-        alt: localized(image.alt),
-        caption: localized(image.caption),
-        crop: (image.crop as CropRect | null) ?? null,
-        ratio: (image.ratio as CropRatio) ?? "original",
-        // Documents written before the grid gained a second axis carry `span`.
-        cols: (image.cols as GalleryCols) ?? SPAN_TO_COLS[image.span as GallerySpan] ?? DEFAULT_GALLERY_COLS,
-        rows: (image.rows as GalleryRows) ?? DEFAULT_GALLERY_ROWS,
-        fit: (image.fit as GalleryFit) ?? "cover",
-        group: String(image.group ?? ""),
-        __uid: nextUid(),
-      };
-    }),
-  );
   const [cropping, setCropping] = useState<string | null>(null);
   const [preview, setPreview] = useState<(typeof PREVIEW_WIDTHS)[number]["id"]>("desktop");
   const [previewLocale, setPreviewLocale] = useState<"en" | "id">("en");
@@ -346,6 +366,25 @@ export function GalleryStudio({
       )}
     </div>
   );
+}
+
+/**
+ * The studio holding its own list, for forms that have nothing to share it with.
+ *
+ * The project form does share it — its cover field offers the same images — so
+ * there the state lives one level up. Every other resource with a gallery has
+ * only this one consumer, and making them all lift state would be ceremony for
+ * a list nobody else reads.
+ */
+export function GalleryStudioField({
+  value,
+  ...props
+}: Omit<React.ComponentProps<typeof GalleryStudio>, "images" | "setImages"> & {
+  value?: unknown;
+}) {
+  const [images, setImages] = useState<GalleryEntry[]>(() => toGalleryEntries(value));
+
+  return <GalleryStudio {...props} images={images} setImages={setImages} />;
 }
 
 function StudioRow({
