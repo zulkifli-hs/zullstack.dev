@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
+import { GlassPanel } from "@/components/glass/glass-panel";
 import { Tag } from "@/components/lab/section";
 import { ProjectGallery } from "@/components/sections/project-gallery";
 import type { Locale } from "@/i18n/routing";
@@ -64,24 +65,32 @@ export async function ExperienceTimeline({
         return (
           <li key={entry.id}>
             <div className="flex items-start gap-3">
-              {logo ? (
-                <Image
-                  src={cloudinarySrc(logo)}
-                  alt=""
-                  width={logo.width ?? 96}
-                  height={logo.height ?? 96}
-                  className="border-hairline/60 size-11 shrink-0 rounded-lg border object-contain p-1"
-                />
-              ) : (
-                // A blank square keeps every company on the same left edge, so
-                // a missing logo does not shunt one block out of alignment.
-                <span
-                  aria-hidden
-                  className="border-hairline/60 text-muted-foreground/60 grid size-11 shrink-0 place-items-center rounded-lg border font-mono text-sm"
-                >
-                  {name.slice(0, 1).toUpperCase()}
-                </span>
-              )}
+              {/* Glass rather than a bordered box: a hairline square sat flat
+                  against the page and read as a placeholder. The tile is small
+                  and repeats down the page, so it takes the cheap `glass` tier
+                  rather than the lens — refraction is budgeted for the hero. */}
+              <GlassPanel
+                variant="glass"
+                tier="sm"
+                padding="none"
+                className="grid size-12 shrink-0 place-items-center overflow-hidden"
+              >
+                {logo ? (
+                  <Image
+                    src={cloudinarySrc(logo)}
+                    alt=""
+                    width={logo.width ?? 96}
+                    height={logo.height ?? 96}
+                    className="size-full object-contain p-1.5"
+                  />
+                ) : (
+                  // An initial keeps every company on the same left edge, so a
+                  // missing logo does not shunt one block out of alignment.
+                  <span aria-hidden className="text-muted-foreground/70 font-mono text-sm">
+                    {name.slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+              </GlassPanel>
 
               <div className="min-w-0">
                 <h3 className="text-base font-semibold tracking-tight">
@@ -160,10 +169,16 @@ function Position({
     // The rail is a left border on each item rather than one absolutely
     // positioned line, so it can never drift out of sync with the content it is
     // measuring. The last position stops the line instead of trailing past it.
-    <li className={cn("relative border-l pl-6", last ? "border-transparent" : "border-hairline")}>
+    //
+    // `border-signal/30` rather than the hairline: the page substrate is a
+    // blueprint grid of 1px blue lines, and a neutral hairline of the same
+    // weight simply disappeared into it. Borrowing the accent gives the rail a
+    // hue the grid does not have, so it reads as structure rather than as one
+    // more grid line.
+    <li className={cn("relative border-l pl-6", last ? "border-transparent" : "border-signal/30")}>
       <span
         aria-hidden
-        className="bg-background absolute top-1.5 -left-[5px] size-2.5 rounded-full"
+        className="bg-background absolute top-1.5 -left-1.25 size-2.5 rounded-full"
         style={{ boxShadow: "0 0 0 2px var(--signal)" }}
       />
 

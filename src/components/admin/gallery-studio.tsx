@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";
-import { isLong } from "@/lib/images/cloudinary";
+import { cloudinaryPreview, isLong } from "@/lib/images/cloudinary";
 import { formatBytes } from "@/lib/images/constraints";
 import {
   DEFAULT_GALLERY_COLS,
@@ -442,7 +442,7 @@ function StudioRow({
             next/image would require in remotePatterns first. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={image.url}
+          src={cloudinaryPreview(image.url, 200)}
           alt=""
           className="border-hairline size-20 rounded-md border object-cover"
         />

@@ -4,6 +4,7 @@ import { RotateCcw } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { cloudinaryPreview } from "@/lib/images/cloudinary";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { CROP_RATIOS, type CropRatio, type CropRect } from "@/lib/content-enums";
 import { cn } from "@/lib/utils";
@@ -218,10 +219,14 @@ export function ImageCropDialog({
           >
             {/* Plain <img>: an admin preview of an arbitrary remote asset, which
                 next/image would require in remotePatterns first — and the crop
-                maths needs the element's own box, not a fill wrapper. */}
+                maths needs the element's own box, not a fill wrapper.
+
+                Served through `cloudinaryPreview` so a HEIC original arrives as
+                something the browser can decode. Without it this element was
+                simply blank for every photo taken on a phone. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={url}
+              src={cloudinaryPreview(url)}
               alt=""
               draggable={false}
               className="block max-h-[60vh] w-auto max-w-full object-contain"
