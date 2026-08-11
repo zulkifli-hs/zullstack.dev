@@ -14,7 +14,7 @@ import {
   type GalleryRows,
   type GallerySpan,
 } from "@/lib/content-enums";
-import { cloudinarySrc, croppedSize, isLong } from "@/lib/images/cloudinary";
+import { cloudinaryPreview, cloudinarySrc, croppedSize, isLong } from "@/lib/images/cloudinary";
 import { cn, pick } from "@/lib/utils";
 import type { GalleryGroup, GalleryImage } from "@/types/content";
 
@@ -224,7 +224,11 @@ function Grid({
                 <span
                   aria-hidden
                   className="absolute inset-0 scale-110 bg-cover bg-center opacity-35 blur-2xl"
-                  style={{ backgroundImage: `url(${src})` }}
+                  // A CSS background never reaches the image loader, so this
+                  // asks Cloudinary directly — for a format the browser can
+                  // decode (a HEIC original renders as nothing otherwise), and
+                  // at 64px, since the only thing done to it is a 2xl blur.
+                  style={{ backgroundImage: `url(${cloudinaryPreview(src, 64)})` }}
                 />
               )}
 

@@ -106,6 +106,28 @@ export function cloudinaryThumb(image: TransformableImage, aspect: number): stri
   return withTransform(base, `c_fill,g_north,ar_${aspect.toFixed(3)}`);
 }
 
+/**
+ * A copy the browser can actually decode, for the CMS's plain `<img>` previews.
+ *
+ * HEIC is why this exists. An iPhone photo uploads fine and Cloudinary stores it
+ * happily, but Chrome and Firefox cannot decode HEIC at all — so the crop dialog
+ * and every admin thumbnail rendered a broken image, and there was no way to
+ * crop a photo taken on a phone. `f_auto` hands back whatever the requesting
+ * browser accepts, which for a HEIC source means a real conversion rather than a
+ * rename.
+ *
+ * The public site never hit this: `next/image` goes through the custom loader,
+ * which already appends `f_auto`. Only the admin, which deliberately uses plain
+ * `<img>` for arbitrary remote assets, was left decoding the original bytes.
+ *
+ * Deliberately ignores any stored crop — the crop dialog draws its rectangle
+ * over the *whole* image, and a pre-cropped preview would let a second crop
+ * compound on the first.
+ */
+export function cloudinaryPreview(src: string, width = 1200): string {
+  return withTransform(src, `f_auto,q_auto,w_${width},c_limit`);
+}
+
 /** Dimensions after the stored crop, used for grid layout and lightbox sizing. */
 export function croppedSize(image: TransformableImage): { width: number; height: number } {
   const { crop, width = 0, height = 0 } = image;

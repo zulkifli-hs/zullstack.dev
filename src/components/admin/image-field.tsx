@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";
+import { cloudinaryPreview } from "@/lib/images/cloudinary";
 import { formatBytes } from "@/lib/images/constraints";
 import type { CropRatio, CropRect, Localized } from "@/lib/content-enums";
 import { cn } from "@/lib/utils";
@@ -151,7 +152,7 @@ export function ImageField({
             {/* Plain <img>: this is an admin preview of an arbitrary remote asset,
                 and next/image would demand it be in remotePatterns first. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={image.url} alt="" className="max-h-48 w-auto" />
+            <img src={cloudinaryPreview(image.url, 600)} alt="" className="max-h-48 w-auto" />
             {/* Was a hand-rolled `bg-background/80 backdrop-blur` — one of three
                 uncoordinated blurs that ignored the glass tokens and never
                 degraded. Now a real glass control. */}
@@ -340,7 +341,7 @@ function ImagePickerDialog({
                     which next/image would require in remotePatterns first. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={candidate.url}
+                  src={cloudinaryPreview(candidate.url, 400)}
                   alt=""
                   // The cover renders as a 16:9 band, so previewing the
                   // candidates in that same frame is what makes the choice
