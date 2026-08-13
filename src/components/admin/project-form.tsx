@@ -3,7 +3,7 @@
 import { ArrowLeft, GripVertical, Loader2 } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import Link from "next/link";
-import { useActionState, useState, type Dispatch, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 
 import { FieldControl, groupFields } from "@/components/admin/field-control";
 import {
@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
+import { useActionForm } from "@/hooks/use-action-form";
 import { saveEntity, type ActionState } from "@/lib/actions/content";
 import type { Field } from "@/lib/admin/fields";
 import { GALLERY_DISPLAYS, type GalleryDisplay, type GalleryGroup } from "@/lib/content-enums";
@@ -88,7 +89,10 @@ export function ProjectForm({
   fields: Field[];
   values: Record<string, unknown>;
 }) {
-  const [state, formAction, pending] = useActionState<ActionState, FormData>(
+  // `onSubmit`, not `action` — see `useActionForm`. It matters most here: this
+  // form is the longest in the CMS, so having it emptied by a rejected save is
+  // the most expensive version of that bug.
+  const { state, pending, onSubmit } = useActionForm<ActionState>(
     saveEntity.bind(null, "projects", id),
     {},
   );
@@ -106,7 +110,7 @@ export function ProjectForm({
   const sections = groupFields(fields);
 
   return (
-    <form action={formAction}>
+    <form onSubmit={onSubmit}>
       <div className="bg-background/80 sticky top-0 z-20 -mx-4 flex flex-wrap items-center justify-between gap-4 px-4 py-4 backdrop-blur-sm">
         <div>
           <Link

@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2, Plus, X } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useState } from "react";
 
 import { ImageField } from "@/components/admin/image-field";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
+import { useActionForm } from "@/hooks/use-action-form";
 import { saveSiteConfig, type ConfigState } from "@/lib/actions/site-config";
 
 type Social = { platform: string; url: string; handle: string };
@@ -18,7 +19,10 @@ type Stat = { key: string; value: number | string; suffix: string };
 const STAT_KEYS = ["years", "projects", "students", "stack"] as const;
 
 export function SiteConfigForm({ config }: { config: Record<string, unknown> }) {
-  const [state, formAction, pending] = useActionState<ConfigState, FormData>(saveSiteConfig, {});
+  // `onSubmit`, not `action` — see `useActionForm`. This form never navigates
+  // away, so the reset was visible even on success: it restored the values the
+  // page had loaded with, making a save that worked look like it had reverted.
+  const { state, pending, onSubmit } = useActionForm<ConfigState>(saveSiteConfig, {});
 
   const [socials, setSocials] = useState<Social[]>(
     (config.socials as Social[] | undefined)?.length
@@ -35,7 +39,7 @@ export function SiteConfigForm({ config }: { config: Record<string, unknown> }) 
     String((config[field] as Record<string, string> | undefined)?.[locale] ?? "");
 
   return (
-    <form action={formAction} className="mt-8 max-w-3xl space-y-8">
+    <form onSubmit={onSubmit} className="mt-8 max-w-3xl space-y-8">
       <section className="grid gap-4 sm:grid-cols-2">
         <Text name="name" label="Name" defaultValue={String(config.name ?? "")} error={state.errors?.name} />
         <Text name="email" label="Email" defaultValue={String(config.email ?? "")} error={state.errors?.email} />

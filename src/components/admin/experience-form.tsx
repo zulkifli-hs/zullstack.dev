@@ -3,7 +3,7 @@
 import { ArrowLeft, GripVertical, Loader2, Plus, Trash2 } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import Link from "next/link";
-import { useActionState, useState, type Dispatch, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 
 import { FieldControl } from "@/components/admin/field-control";
 import {
@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
+import { useActionForm } from "@/hooks/use-action-form";
 import { saveEntity, type ActionState } from "@/lib/actions/content";
 import type { Field } from "@/lib/admin/fields";
 import {
@@ -162,7 +163,8 @@ export function ExperienceForm({
   fields: Field[];
   values: Record<string, unknown>;
 }) {
-  const [state, formAction, pending] = useActionState<ActionState, FormData>(
+  // `onSubmit`, not `action` — see `useActionForm`.
+  const { state, pending, onSubmit } = useActionForm<ActionState>(
     saveEntity.bind(null, "experience", id),
     {},
   );
@@ -184,7 +186,7 @@ export function ExperienceForm({
   const rest = fields.filter((field) => !OWNED.has(field.name));
 
   return (
-    <form action={formAction}>
+    <form onSubmit={onSubmit}>
       <div className="bg-background/80 sticky top-0 z-20 -mx-4 flex flex-wrap items-center justify-between gap-4 px-4 py-4 backdrop-blur-sm">
         <div>
           <Link

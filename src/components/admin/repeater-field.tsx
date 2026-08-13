@@ -54,10 +54,9 @@ export function RepeaterField({
   value?: unknown;
 }) {
   const [rows, setRows] = useState<Row[]>(() =>
-    (Array.isArray(value) ? value : []).map((entry) => ({
-      ...(entry as Record<string, unknown>),
-      __uid: nextUid(),
-    })),
+    (Array.isArray(value) ? value : []).map((entry) =>
+      adopt(itemFields, entry as Record<string, unknown>),
+    ),
   );
 
   function update(rowUid: string, patch: Record<string, unknown>) {
@@ -111,6 +110,33 @@ export function RepeaterField({
       )}
     </div>
   );
+}
+
+/**
+ * Takes a stored row into editor state.
+ *
+ * Only `select` and `boolean` are filled in, and only when the row has no value
+ * for them, because those two controls *assert* a value the row may not hold: a
+ * select with nothing to show renders its first option, and a checkbox renders
+ * unchecked. The hidden JSON meanwhile still posts nothing, and `schemaFor`
+ * gives a select no default — so the save is rejected for a field the editor can
+ * see is answered, which is unarguable from the screen. `.lean()` applies no
+ * schema defaults, so any row written before a field existed arrives this way.
+ *
+ * Text fields are deliberately left alone: they render empty *and* post empty,
+ * so what is on screen is already the truth. Dates especially — `z.coerce.date()`
+ * reads `""` as an invalid date and would fail the save outright.
+ */
+function adopt(itemFields: Field[], row: Record<string, unknown>): Row {
+  const adopted: Row = { ...row, __uid: nextUid() };
+
+  for (const field of itemFields) {
+    if (adopted[field.name] != null) continue;
+    if (field.type === "select") adopted[field.name] = field.options?.[0] ?? "";
+    else if (field.type === "boolean") adopted[field.name] = false;
+  }
+
+  return adopted;
 }
 
 function blankRow(itemFields: Field[]): Row {
