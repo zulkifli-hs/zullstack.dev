@@ -99,6 +99,8 @@ export function ProjectGallery({
   display = "flat",
   groups = [],
   labels,
+  highlight = null,
+  onHighlight,
 }: {
   images: GalleryImage[];
   locale: Locale;
@@ -106,6 +108,19 @@ export function ProjectGallery({
   display?: "flat" | "grouped";
   groups?: GalleryGroup[];
   labels: Labels;
+  /**
+   * Index of the cell to ring, and a way to report the one being pointed at.
+   *
+   * For the CMS, which shows this component beside the list that edits it and
+   * has to say which row is which cell. Both are omitted on the public page, and
+   * omitting `onHighlight` is what keeps its cells free of pointer handlers.
+   *
+   * It belongs here rather than in a copy of the grid built for the editor: the
+   * preview is only worth having because it *is* the page, and the first time a
+   * separate implementation drifted it would be worse than no preview at all.
+   */
+  highlight?: number | null;
+  onHighlight?: (index: number | null) => void;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -139,6 +154,8 @@ export function ProjectGallery({
                   title={title}
                   labels={labels}
                   onOpen={setOpenIndex}
+                  highlight={highlight}
+                  onHighlight={onHighlight}
                 />
               </section>
             ))}
@@ -150,6 +167,8 @@ export function ProjectGallery({
             title={title}
             labels={labels}
             onOpen={setOpenIndex}
+            highlight={highlight}
+            onHighlight={onHighlight}
           />
         )}
       </div>
@@ -174,12 +193,16 @@ function Grid({
   title,
   labels,
   onOpen,
+  highlight,
+  onHighlight,
 }: {
   entries: Entry[];
   locale: Locale;
   title: string;
   labels: Labels;
   onOpen: (index: number) => void;
+  highlight: number | null;
+  onHighlight?: (index: number | null) => void;
 }) {
   return (
     <ul
@@ -209,12 +232,27 @@ function Grid({
         return (
           <li
             key={image.publicId || image.url}
+            // Read by the CMS to scroll a cell into view inside its preview
+            // pane. Inert everywhere else, and cheaper than a ref per cell.
+            data-gallery-index={index}
+            // Only wired up when someone is listening, so the public grid
+            // registers no pointer handlers at all.
+            onPointerEnter={onHighlight && (() => onHighlight(index))}
+            onPointerLeave={onHighlight && (() => onHighlight(null))}
             className={cn(COL_CLASS[colsOf(image)], ROW_CLASS[rowsOf(image)], "min-w-0")}
           >
             <button
               type="button"
               onClick={() => onOpen(index)}
-              className="border-hairline/60 hover:border-ring group relative block h-full w-full overflow-hidden rounded-xl border transition-colors"
+              className={cn(
+                "border-hairline/60 hover:border-ring group relative block h-full w-full overflow-hidden rounded-xl border transition-colors",
+                // Ring rather than a tint or a dimming of everything else: the
+                // preview's whole claim is that it is the page, and this is the
+                // least it can add and still answer "which one is this?".
+                // `ring-2` survives being scaled down to a phone width, where a
+                // hairline would round away to nothing.
+                highlight === index && "ring-signal border-signal ring-2",
+              )}
             >
               {/* `contain` would otherwise leave bare page behind the image and
                   the cell would read as a gap rather than a card. A blurred

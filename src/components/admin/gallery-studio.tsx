@@ -15,7 +15,15 @@ import {
   X,
 } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
-import { useEffect, useId, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 
 import { ImageCropDialog } from "@/components/admin/image-crop-dialog";
 import { ProjectGallery } from "@/components/sections/project-gallery";
@@ -249,8 +257,73 @@ export function GalleryStudio({
   // The preview is the public page, so it shows what the public would get.
   // Seeing a held-back image disappear from the grid is also the clearest
   // confirmation that hiding it did something.
-  const published = images.filter((image) => !image.hidden);
+  //
+  // Memoised because the highlight below re-renders this component on every
+  // pointer movement between rows, and rebuilding the preview's whole image
+  // array each time would hand `ProjectGallery` a fresh object per cell for a
+  // change that only ever concerns one ring.
+  const published = useMemo(() => images.filter((image) => !image.hidden), [images]);
+  const previewImages = useMemo(() => published.map(galleryForSubmit), [published]);
   const hiddenCount = images.length - published.length;
+
+  // Which image both panes are pointing at, held as the studio's own identity
+  // rather than a grid position: the preview only contains the published ones,
+  // so an index there means nothing on this side of the boundary. It is
+  // converted at the two points where they meet, and nowhere else.
+  const [highlight, setHighlight] = useState<string | null>(null);
+  const highlightIndex = highlight
+    ? published.findIndex((image) => image.__uid === highlight)
+    : -1;
+
+  /**
+   * Brings a preview cell into view, but only when it is genuinely out of it.
+   *
+   * Now that the pane scrolls, the cell a row points at is often below the fold
+   * — and a highlight nobody can see answers nothing. Scoped to the pane's own
+   * `scrollTop` rather than `scrollIntoView`, which walks every scrollable
+   * ancestor and would drag the whole page along with it.
+   */
+  function revealInPreview(index: number) {
+    const pane = paneRef.current;
+    const cell = pane?.querySelector<HTMLElement>(`[data-gallery-index="${index}"]`);
+    if (!pane || !cell) return;
+
+    const paneBox = pane.getBoundingClientRect();
+    const cellBox = cell.getBoundingClientRect();
+
+    // A margin, so the cell lands inside the pane rather than flush against
+    // the edge it was hiding behind.
+    const above = cellBox.top - paneBox.top - 12;
+    const below = cellBox.bottom - paneBox.bottom + 12;
+
+    // Nudging an already-visible cell would make the preview twitch under
+    // every pointer movement down the list.
+    if (above >= 0 && below <= 0) return;
+
+    pane.scrollTo({ top: pane.scrollTop + (above < 0 ? above : below), behavior: "smooth" });
+  }
+
+  /** Pointing at a row: ring its cell, and scroll to it if it is out of sight. */
+  function highlightFromRow(image: Entry | null) {
+    setHighlight(image?.__uid ?? null);
+    if (!image) return;
+
+    // A hidden image has no cell. The row still rings — it is the row the
+    // pointer is on — and there is simply nothing in the preview to reveal.
+    const index = published.findIndex((entry) => entry.__uid === image.__uid);
+    if (index >= 0) revealInPreview(index);
+  }
+
+  /**
+   * Pointing at a cell: ring its row.
+   *
+   * No scrolling in this direction. The list is not its own scroll container,
+   * so following it would move the page under a pointer that is resting on the
+   * sticky preview — every sweep across the grid would send the page hunting.
+   */
+  function highlightFromPreview(index: number | null) {
+    setHighlight(index === null ? null : (published[index]?.__uid ?? null));
+  }
 
   return (
     <div className="space-y-3 sm:col-span-2">
@@ -351,6 +424,8 @@ export function GalleryStudio({
                 groups={groups}
                 showGroup={display === "grouped"}
                 showText={showText}
+                active={highlight === image.__uid}
+                onHoverChange={(hovering) => highlightFromRow(hovering ? image : null)}
                 onChange={(patch) => update(image.__uid, patch)}
                 onCrop={() => setCropping(image.__uid)}
                 onRemove={() =>
@@ -438,12 +513,14 @@ export function GalleryStudio({
                     </p>
                   ) : (
                     <ProjectGallery
-                      images={published.map(galleryForSubmit)}
+                      images={previewImages}
                       locale={previewLocale}
                       title="Preview"
                       display={display}
                       groups={groups}
                       labels={{ long: "long", ungrouped: "Other" }}
+                      highlight={highlightIndex >= 0 ? highlightIndex : null}
+                      onHighlight={highlightFromPreview}
                     />
                   )}
                 </div>
@@ -493,6 +570,8 @@ function StudioRow({
   groups,
   showGroup,
   showText,
+  active,
+  onHoverChange,
   onChange,
   onCrop,
   onRemove,
@@ -501,6 +580,9 @@ function StudioRow({
   groups: GalleryGroup[];
   showGroup: boolean;
   showText: boolean;
+  /** Pointed at, here or in the preview. */
+  active: boolean;
+  onHoverChange: (hovering: boolean) => void;
   onChange: (patch: Partial<Entry>) => void;
   onCrop: () => void;
   onRemove: () => void;
@@ -515,12 +597,20 @@ function StudioRow({
       value={image}
       dragListener={false}
       dragControls={controls}
+      // `pointerenter`/`leave` rather than `mouseenter`: the row is already
+      // driven by pointer events for dragging, and mixing the two families on
+      // one element is how a device ends up honouring only half of them.
+      onPointerEnter={() => onHoverChange(true)}
+      onPointerLeave={() => onHoverChange(false)}
       className={cn(
         "border-hairline bg-background/40 flex items-start gap-3 rounded-lg border p-3",
         // Faded rather than moved to the bottom of the list: a hidden image
         // keeps its place in the order, because that is the place it goes back
         // to when it is published.
         hidden && "opacity-55",
+        // The same ring the preview cell wears, so the pair reads as one thing
+        // in two places rather than two things that happen to have lit up.
+        active && "border-signal ring-signal ring-2",
       )}
     >
       <button
