@@ -109,6 +109,10 @@ export const galleryImageSchema = new Schema<GalleryImage>(
     rows: { type: Number, enum: GALLERY_ROWS, default: DEFAULT_GALLERY_ROWS },
     fit: { type: String, enum: GALLERY_FITS, default: "cover" },
     group: { type: String, default: "" },
+    // Held back from the public page without being deleted. Filtered in the
+    // read layer rather than in a component, so a hidden image's URL never
+    // reaches the browser.
+    hidden: { type: Boolean, default: false },
   },
   { _id: false },
 );

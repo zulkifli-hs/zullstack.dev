@@ -58,6 +58,7 @@ const galleryImage = z.object({
   rows: z.number().int().min(1).max(GALLERY_ROW_COUNT).default(DEFAULT_GALLERY_ROWS),
   fit: z.enum(GALLERY_FITS).default("cover"),
   group: z.string().trim().default(""),
+  hidden: z.boolean().default(false),
 });
 
 const localizedList = z.object({

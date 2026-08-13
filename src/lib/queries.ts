@@ -123,6 +123,15 @@ const listOrEmpty = (value: unknown) => {
 };
 
 /**
+ * A gallery image the public is allowed to see.
+ *
+ * The CMS reads its documents straight from the model rather than through this
+ * module, so the editor still gets the whole list — hiding is a publishing
+ * decision, not a deletion.
+ */
+const visible = (image: Record<string, unknown>) => image.hidden !== true;
+
+/**
  * Brings one project document up to the current shape, and strips private URLs.
  *
  * Two jobs, deliberately in one place — every read goes through here, so
@@ -151,7 +160,11 @@ function normalizeProject(doc: Record<string, unknown>): Record<string, unknown>
     // and the grid indexes straight into its span-class maps with them. `span`
     // is the pre-bento single-axis width, kept readable so those documents do
     // not silently lose the layout they were given.
-    gallery: gallery.map((image) => ({
+    // Hidden images are dropped here rather than skipped by the component that
+    // draws them: filtering at render would still have shipped their URLs in
+    // the payload, and "not shown" is not what was asked for — a shot that is
+    // not ready to be public should not be reachable from the page at all.
+    gallery: gallery.filter(visible).map((image) => ({
       ...image,
       crop: image.crop ?? null,
       ratio: image.ratio ?? "original",
@@ -300,7 +313,11 @@ function normalizeExperience(doc: Record<string, unknown>): Record<string, unkno
       : Array.isArray(position.techStack)
         ? position.techStack
         : [],
-    media: Array.isArray(position.media) ? position.media : [],
+    // Same rule as a project gallery: the studio is shared, so a position's
+    // media can be held back the same way, and must be dropped just as early.
+    media: Array.isArray(position.media)
+      ? (position.media as Record<string, unknown>[]).filter(visible)
+      : [],
     location: position.location ?? "",
     employmentType: position.employmentType ?? "full-time",
     locationType: position.locationType ?? "onsite",

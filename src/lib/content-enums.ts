@@ -120,6 +120,18 @@ export type GalleryImage = StoredImage & {
   span?: GallerySpan;
   /** Key into the project's `galleryGroups`. Empty means ungrouped. */
   group?: string;
+  /**
+   * Kept, but not published.
+   *
+   * A screenshot is often not ready to show long before it is worth deleting —
+   * an unreleased screen, a client who has not announced yet, a shot waiting on
+   * a better crop. Deleting it to hide it loses the crop, the cell size, the
+   * captions and its place in the order, all of which have to be redone when it
+   * is finally publishable. The read layer drops these before they leave the
+   * server, so a hidden image is not merely invisible: its URL never reaches
+   * the page at all.
+   */
+  hidden?: boolean;
 };
 
 export type GalleryGroup = { key: string; label: Localized };
