@@ -1,20 +1,22 @@
 "use client";
 
-import { ArrowLeft, GripVertical, Loader2 } from "lucide-react";
+import { ArrowLeft, GripVertical, Loader2, Save } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import Link from "next/link";
-import { useActionState, useState, type Dispatch, type SetStateAction } from "react";
+import { useState, useTransition, type Dispatch, type SetStateAction } from "react";
 
 import { FieldControl, groupFields } from "@/components/admin/field-control";
 import {
   GalleryStudio,
+  galleryForSubmit,
   toGalleryEntries,
   type GalleryEntry,
 } from "@/components/admin/gallery-studio";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { saveEntity, type ActionState } from "@/lib/actions/content";
+import { useActionForm } from "@/hooks/use-action-form";
+import { saveEntity, saveProjectGallery, type ActionState } from "@/lib/actions/content";
 import type { Field } from "@/lib/admin/fields";
 import { GALLERY_DISPLAYS, type GalleryDisplay, type GalleryGroup } from "@/lib/content-enums";
 import { cn } from "@/lib/utils";
@@ -88,7 +90,10 @@ export function ProjectForm({
   fields: Field[];
   values: Record<string, unknown>;
 }) {
-  const [state, formAction, pending] = useActionState<ActionState, FormData>(
+  // `onSubmit`, not `action` — see `useActionForm`. It matters most here: this
+  // form is the longest in the CMS, so having it emptied by a rejected save is
+  // the most expensive version of that bug.
+  const { state, pending, onSubmit } = useActionForm<ActionState>(
     saveEntity.bind(null, "projects", id),
     {},
   );
@@ -106,7 +111,7 @@ export function ProjectForm({
   const sections = groupFields(fields);
 
   return (
-    <form action={formAction}>
+    <form onSubmit={onSubmit}>
       <div className="bg-background/80 sticky top-0 z-20 -mx-4 flex flex-wrap items-center justify-between gap-4 px-4 py-4 backdrop-blur-sm">
         <div>
           <Link
@@ -180,6 +185,7 @@ export function ProjectForm({
 
                 {section.fields.some((field) => MEDIA_OWNED.has(field.name)) && (
                   <GallerySection
+                    id={id}
                     fields={section.fields.filter((field) => MEDIA_OWNED.has(field.name))}
                     images={images}
                     setImages={setImages}
@@ -207,6 +213,7 @@ function countErrors(field: Field, errors?: Record<string, string>): number {
 }
 
 function GallerySection({
+  id,
   fields,
   images,
   setImages,
@@ -215,6 +222,8 @@ function GallerySection({
   groups,
   setGroups,
 }: {
+  /** Null for a project that has not been created yet — nothing to patch. */
+  id: string | null;
   fields: Field[];
   images: GalleryEntry[];
   setImages: Dispatch<SetStateAction<GalleryEntry[]>>;
@@ -225,8 +234,63 @@ function GallerySection({
 }) {
   const galleryField = fields.find((field) => field.name === "gallery");
 
+  const [saving, startSaving] = useTransition();
+  const [saved, setSaved] = useState<ActionState | null>(null);
+
+  function saveGallery() {
+    if (!id) return;
+    setSaved(null);
+
+    startSaving(async () => {
+      setSaved(
+        await saveProjectGallery(id, {
+          gallery: images.map(galleryForSubmit),
+          galleryDisplay: display,
+          galleryGroups: groups.map(groupForSubmit),
+        }),
+      );
+    });
+  }
+
   return (
     <div className="space-y-6 sm:col-span-2">
+      {/* Its own save, because arranging a gallery is its own sitting. The
+          button at the top of the page writes the whole project and then leaves
+          for the list, which is the wrong ending for "I moved two images and
+          want to keep that". */}
+      <div className="border-hairline flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed px-3 py-2">
+        <p className="text-muted-foreground text-xs">
+          {id
+            ? "Saves the gallery, its display mode and its groups. Everything else on this page still needs Save at the top."
+            : "Save the project once before its gallery can be saved on its own."}
+        </p>
+
+        <div className="flex items-center gap-3">
+          {saved?.message && (
+            <p
+              role="status"
+              className={cn("text-xs", saved.ok ? "text-signal" : "text-destructive")}
+            >
+              {saved.message}
+            </p>
+          )}
+
+          {/* `type="button"`: a nested <form> is not legal HTML, so this cannot
+              be a submit — it would post the outer form and navigate away. */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!id || saving}
+            onClick={saveGallery}
+            className="shrink-0"
+          >
+            {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+            Save gallery
+          </Button>
+        </div>
+      </div>
+
       <div className="space-y-2">
         <span className="lab-label text-muted-foreground block">Gallery display</span>
         <NativeSelect

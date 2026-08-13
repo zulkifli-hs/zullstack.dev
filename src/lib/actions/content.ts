@@ -31,6 +31,70 @@ function assertResource(key: string): ResourceKey {
   return key;
 }
 
+/** Zod issues, keyed the way the form names its inputs. */
+function fieldErrors(issues: { path: PropertyKey[]; message: string }[]): Record<string, string> {
+  const errors: Record<string, string> = {};
+  for (const issue of issues) {
+    const path = issue.path.join(".");
+    errors[path] ??= issue.message;
+  }
+  return errors;
+}
+
+/**
+ * The fields a gallery save is allowed to write.
+ *
+ * The gallery, the mode it is displayed in, and the sections it is displayed in
+ * — the three things the gallery editor owns, and nothing else. Names, not a
+ * free-form list from the caller: `schemaFor` builds its validator from these,
+ * and `z.object` drops everything it was not told about, so a payload naming
+ * `status` cannot publish a draft through this door.
+ */
+const GALLERY_FIELDS = new Set(["gallery", "galleryDisplay", "galleryGroups"]);
+
+/**
+ * Saves a project's gallery without saving the rest of the project.
+ *
+ * Arranging a gallery is its own sitting: crop, resize, reorder, hide, look at
+ * the preview, do it again. Committing that used to mean submitting the whole
+ * form, which navigates back to the list — so the way to keep the layout was to
+ * leave the screen it was being built on, and returning meant scrolling back
+ * down and finding your place again.
+ *
+ * `findByIdAndUpdate` is `$set`, and the validated object holds only the three
+ * keys above, so every other field is left exactly as it is on disk. That is
+ * what makes this safe to press with unsaved edits elsewhere on the page: those
+ * edits are not written, and they are not clobbered either.
+ */
+export async function saveProjectGallery(id: string, payload: unknown): Promise<ActionState> {
+  await requireAdmin();
+
+  const { model, fields } = RESOURCES.projects;
+  const parsed = schemaFor(fields.filter((field) => GALLERY_FIELDS.has(field.name))).safeParse(
+    payload,
+  );
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: "The gallery could not be saved.",
+      errors: fieldErrors(parsed.error.issues),
+    };
+  }
+
+  await connectDB();
+
+  const updated = await model.findByIdAndUpdate(id, parsed.data, { runValidators: true });
+  // Deleted in another tab, most likely. Saying so beats a silent success that
+  // writes nothing.
+  if (!updated) return { ok: false, message: "That project no longer exists." };
+
+  revalidatePublicSite();
+  revalidatePath("/admin/projects");
+
+  return { ok: true, message: "Gallery saved." };
+}
+
 export async function saveEntity(
   resourceKey: string,
   id: string | null,
@@ -47,12 +111,11 @@ export async function saveEntity(
   const parsed = schemaFor(fields).safeParse(parseFormData(fields, formData));
 
   if (!parsed.success) {
-    const errors: Record<string, string> = {};
-    for (const issue of parsed.error.issues) {
-      const path = issue.path.join(".");
-      errors[path] ??= issue.message;
-    }
-    return { ok: false, message: "Please fix the highlighted fields.", errors };
+    return {
+      ok: false,
+      message: "Please fix the highlighted fields.",
+      errors: fieldErrors(parsed.error.issues),
+    };
   }
 
   await connectDB();

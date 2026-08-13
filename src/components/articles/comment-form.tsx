@@ -2,17 +2,21 @@
 
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useActionForm } from "@/hooks/use-action-form";
 import { submitComment, type CommentState } from "@/lib/actions/engagement";
 
 export function CommentForm({ articleSlug }: { articleSlug: string }) {
   const t = useTranslations("comments");
-  const [state, formAction, pending] = useActionState<CommentState, FormData>(submitComment, {});
+  // `onSubmit`, not `action` — see `useActionForm`. A rejected comment used to
+  // take the comment with it, which for someone who has just written several
+  // paragraphs is the worst place in the site to lose text. Success needs no
+  // reset: the form is replaced by the confirmation below.
+  const { state, pending, onSubmit } = useActionForm<CommentState>(submitComment, {});
 
   if (state.ok) {
     return (
@@ -23,7 +27,7 @@ export function CommentForm({ articleSlug }: { articleSlug: string }) {
   }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <input type="hidden" name="articleSlug" value={articleSlug} />
 
       {/* Honeypot. Hidden from people, irresistible to bots. Not `display:none`,

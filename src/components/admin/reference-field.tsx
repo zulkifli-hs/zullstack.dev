@@ -2,7 +2,7 @@
 
 import { Check, ChevronsUpDown, ExternalLink, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,15 +11,44 @@ import { listReferenceOptions, type ReferenceOption } from "@/lib/actions/refere
 import { cn } from "@/lib/utils";
 
 /**
+ * Requests in flight, shared by every picker on the page.
+ *
+ * Several of these mount at once — one per repeater row — and each now needs the
+ * list in order to name the value it is holding. Without sharing, a project
+ * crediting three partners would fire the same query three times. Dropped as
+ * soon as it settles rather than kept as a cache: the "New entry" link opens the
+ * other resource in a second tab, and a partner created there has to be able to
+ * appear on the next open without a page reload.
+ */
+const inFlight = new Map<string, Promise<ReferenceOption[]>>();
+
+function loadOptions(relationTo: string): Promise<ReferenceOption[]> {
+  const pending = inFlight.get(relationTo);
+  if (pending) return pending;
+
+  const request = listReferenceOptions(relationTo);
+  inFlight.set(relationTo, request);
+
+  return request.finally(() => inFlight.delete(relationTo));
+}
+
+/**
  * Picks one document from another resource.
  *
- * Options load on first open rather than with the page. A `reference` sits
- * inside a repeater row, so a project with five partners would otherwise fetch
- * and ship the same option list five times before the editor touches any of it.
+ * What is stored on the document is an id, and an id is not a name — so the list
+ * has to be fetched before this control can say what it is set to. It is fetched
+ * when the picker opens and, for a field that already holds a value, on mount.
+ *
+ * That second case is not an optimisation. Without it the trigger reads as unset
+ * for a reference that is in fact saved, and the only way to discover otherwise
+ * is to open the dropdown — which is exactly what nobody does to a field that
+ * already looks like it needs answering.
+ *
+ * An empty picker still fetches nothing until it is opened, which is what the
+ * lazy load was for: a page of untouched repeater rows costs nothing.
  *
  * The value is reported through `onChange` rather than a hidden input: this
- * control only ever appears inside a repeater, which serialises its whole array
- * as one JSON blob.
+ * control only ever appears inside a form that serialises its rows as JSON.
  */
 export function ReferenceField({
   value,
@@ -35,27 +64,54 @@ export function ReferenceField({
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
-  async function load() {
-    if (options) return;
-    setError(null);
-    try {
-      setOptions(await listReferenceOptions(relationTo));
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not load options.");
-    }
-  }
+  useEffect(() => {
+    // Opened, or holding a value that has no name to show yet.
+    if (!open && !value) return;
+    if (options || error) return;
+
+    let cancelled = false;
+
+    loadOptions(relationTo).then(
+      (next) => {
+        if (!cancelled) setOptions(next);
+      },
+      (reason: unknown) => {
+        if (!cancelled) {
+          setError(reason instanceof Error ? reason.message : "Could not load options.");
+        }
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, value, options, error, relationTo]);
 
   const selected = options?.find((option) => option.id === value);
   const filtered = (options ?? []).filter((option) =>
     option.label.toLowerCase().includes(query.trim().toLowerCase()),
   );
 
+  // Every state named. "Empty-looking" was precisely this control's failure, so
+  // each reason the label is not a name says which reason it is — including a
+  // loaded list that has no match, which means the referenced document was
+  // deleted or fell outside the fetch limit. That used to read as "Selected",
+  // which hid a broken link behind a reassuring word.
+  let label = "Choose…";
+  if (value) {
+    if (selected) label = selected.label;
+    else if (options) label = "Missing entry";
+    else if (error) label = "Could not load";
+    else label = "Loading…";
+  }
+
   return (
     <Popover
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (next) void load();
+        // Opening is the retry: clearing the error lets the effect fetch again.
+        if (next) setError(null);
       }}
     >
       <PopoverTrigger
@@ -66,12 +122,7 @@ export function ReferenceField({
           />
         }
       >
-        <span className={cn("truncate", !value && "text-muted-foreground")}>
-          {/* Before the list loads there is nothing to resolve the stored id
-              against, so an already-set value reads as "selected" rather than
-              flashing as empty and looking unsaved. */}
-          {selected?.label ?? (value ? "Selected" : "Choose…")}
-        </span>
+        <span className={cn("truncate", !selected && "text-muted-foreground")}>{label}</span>
         <ChevronsUpDown className="text-muted-foreground size-3.5 shrink-0" />
       </PopoverTrigger>
 

@@ -2,10 +2,10 @@
 
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useActionState } from "react";
 
 import { FieldControl, groupFields } from "@/components/admin/field-control";
 import { Button } from "@/components/ui/button";
+import { useActionForm } from "@/hooks/use-action-form";
 import { saveEntity, type ActionState } from "@/lib/actions/content";
 import { type Field } from "@/lib/admin/fields";
 import { cn } from "@/lib/utils";
@@ -23,7 +23,10 @@ export function EntityForm({
   fields: Field[];
   values: Record<string, unknown>;
 }) {
-  const [state, formAction, pending] = useActionState<ActionState, FormData>(
+  // `onSubmit`, not `action` — see `useActionForm`: the `action` prop resets
+  // every field the moment the action returns, so a rejected save would empty
+  // the form the editor was trying to correct.
+  const { state, pending, onSubmit } = useActionForm<ActionState>(
     saveEntity.bind(null, resource, id),
     {},
   );
@@ -31,7 +34,7 @@ export function EntityForm({
   const groups = groupFields(fields);
 
   return (
-    <form action={formAction}>
+    <form onSubmit={onSubmit}>
       {/* Sticky: these forms are now long enough that a save button pinned to
           the top of the document would scroll out of reach for most of the
           editing session. */}
