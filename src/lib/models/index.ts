@@ -14,6 +14,7 @@ import {
   LOCATION_TYPES,
   PARTNER_KINDS,
   PLATFORMS,
+  PROJECT_CATEGORIES,
   projectLinkSchema,
   projectPartnerSchema,
   teamMemberSchema,
@@ -72,6 +73,10 @@ const projectSchema = new Schema(
     // Where the work stands today. Deliberately separate from `status`, which
     // is editorial: a sunsetted project is still worth publishing.
     lifecycle: { type: String, enum: LIFECYCLES, default: "live" },
+    // The domain the work is in — the question `platforms` and `lifecycle`
+    // cannot answer. Single-valued, and indexed because it is the field the
+    // listing page filters on.
+    category: { type: String, enum: PROJECT_CATEGORIES, default: "other", index: true },
     techStack: { type: [String], default: [] },
     role: localized(false),
     responsibilities: localizedList(),

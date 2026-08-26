@@ -10,6 +10,10 @@ import { cn } from "@/lib/utils";
  * Section heading in the lab register: a mono eyebrow, a display title, and an
  * optional "see all" link. Every section on the site uses this, which is what
  * makes the vocabulary feel like one instrument rather than nine pages.
+ *
+ * `action` is the same slot the link occupies — the end of the title row — so a
+ * page that needs controls rather than a destination gets them without a second
+ * heading component. Both may be present; they sit side by side.
  */
 export function SectionHeading({
   eyebrow,
@@ -17,6 +21,7 @@ export function SectionHeading({
   description,
   href,
   cta,
+  action,
   className,
 }: {
   eyebrow: string;
@@ -24,8 +29,11 @@ export function SectionHeading({
   description?: string;
   href?: string;
   cta?: string;
+  action?: ReactNode;
   className?: string;
 }) {
+  const hasLink = Boolean(href && cta);
+
   return (
     <div className={cn("flex flex-wrap items-end justify-between gap-4", className)}>
       <div className="max-w-2xl">
@@ -40,14 +48,19 @@ export function SectionHeading({
         )}
       </div>
 
-      {href && cta && (
-        <Link
-          href={href}
-          className="text-link group inline-flex shrink-0 items-center gap-1 text-sm font-medium hover:underline"
-        >
-          {cta}
-          <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-        </Link>
+      {(action || hasLink) && (
+        <div className="flex shrink-0 items-center gap-2">
+          {action}
+          {hasLink && (
+            <Link
+              href={href!}
+              className="text-signal group inline-flex items-center gap-1 text-sm font-medium hover:underline"
+            >
+              {cta}
+              <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          )}
+        </div>
       )}
     </div>
   );

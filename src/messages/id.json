@@ -71,6 +71,54 @@
         "sunsetted": "Sudah tidak beroperasi",
         "internal": "Internal"
       },
+      "category": {
+        "govtech": "Pemerintahan",
+        "saas": "SaaS & Operasional",
+        "marketplace": "Marketplace & Commerce",
+        "community": "Komunitas & Keanggotaan",
+        "data-analytics": "Data & Analitik",
+        "ai": "AI",
+        "field-ops": "Operasional Lapangan",
+        "corporate": "Situs Korporat",
+        "fintech": "Fintech",
+        "edtech": "Pendidikan",
+        "healthtech": "Kesehatan",
+        "logistics": "Logistik",
+        "iot": "IoT & Perangkat",
+        "devtools": "Perkakas Developer",
+        "internal-tools": "Perkakas Internal",
+        "media": "Media & Konten",
+        "other": "Lainnya"
+      },
+      "sort": {
+        "featured": "Favorit dulu",
+        "newest": "Terbaru dulu",
+        "oldest": "Terlama dulu",
+        "az": "Judul A\u2013Z",
+        "za": "Judul Z\u2013A"
+      },
+      "browse": {
+        "filters": "Filter",
+        "dialogTitle": "Filter & urutkan",
+        "dialogDescription": "Persempit daftar berdasarkan domain, platform, dan status, lalu pilih urutannya. Perubahan langsung diterapkan.",
+        "done": "Selesai",
+        "activeFilters": "{count, plural, other {# filter aktif}}",
+        "category": "Kategori",
+        "categoryAll": "Semua",
+        "platform": "Platform",
+        "platformAll": "Semua platform",
+        "lifecycleLabel": "Status",
+        "lifecycleAll": "Semua status",
+        "sort": "Urutkan",
+        "reset": "Atur ulang filter",
+        "results": "{count, plural, =0 {Tidak ada proyek} other {# proyek}}",
+        "noMatch": "Tidak ada proyek yang cocok dengan filter ini."
+      },
+      "rail": {
+        "label": "Proyek \u2014 geser ke samping untuk melihat lainnya",
+        "previous": "Proyek sebelumnya",
+        "next": "Proyek berikutnya"
+      },
       "linkKinds": {
         "live": "Situs langsung",
         "repo": "Kode sumber",

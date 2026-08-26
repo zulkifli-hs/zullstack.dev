@@ -11,7 +11,7 @@ import {
 } from "@/components/sections/content-grids";
 import { ExperienceTimeline } from "@/components/sections/experience-timeline";
 import { Hero } from "@/components/sections/hero";
-import { ProjectGrid } from "@/components/sections/project-grid";
+import { ProjectRail } from "@/components/sections/project-rail";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/resolve-locale";
@@ -33,7 +33,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const [config, projects, experience, mentoring, articles, testimonials, openSource] =
     await Promise.all([
       getSiteConfig(),
-      getProjects({ limit: 3 }),
+      // Eight rather than three: the rail scrolls sideways, so the number
+      // offered is no longer capped by how many fit in one row of a grid.
+      getProjects({ limit: 8 }),
       getExperience(),
       getMentoringTracks({ limit: 3 }),
       getArticles({ limit: 3 }),
@@ -63,7 +65,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             cta={t("projects.cta")}
           />
           <div className="mt-10">
-            <ProjectGrid items={projects} locale={locale} />
+            <ProjectRail items={projects} locale={locale} />
           </div>
         </Section>
       )}

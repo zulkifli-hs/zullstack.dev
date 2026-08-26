@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
-import { ListingPage } from "@/components/lab/page-shell";
+import { ProjectBrowser } from "@/components/sections/project-browser";
 import { resolveLocale } from "@/i18n/resolve-locale";
-import { ProjectGrid } from "@/components/sections/project-grid";
 import { getProjects } from "@/lib/queries";
 
 export async function generateMetadata({
@@ -16,20 +15,15 @@ export async function generateMetadata({
   return { title: t("title"), description: t("description") };
 }
 
+/**
+ * Unlike the other listing pages, this one does not render `ListingPage`
+ * itself — `ProjectBrowser` does. The filter button belongs at the end of the
+ * title row and the results below it, and both are driven by the same state, so
+ * the frame has to live on the same side of the boundary as that state.
+ */
 export default async function Page({ params }: { params: Promise<{ locale: string }> }) {
   const locale = await resolveLocale(params);
   const items = await getProjects();
-  const t = await getTranslations("sections.projects");
 
-  return (
-    <ListingPage
-      eyebrow={t("eyebrow")}
-      title={t("title")}
-      description={t("description")}
-      isEmpty={items.length === 0}
-      emptyMessage={t("empty")}
-    >
-      <ProjectGrid items={items} locale={locale} />
-    </ListingPage>
-  );
+  return <ProjectBrowser items={items} locale={locale} />;
 }
