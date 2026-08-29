@@ -103,6 +103,10 @@ export function EmptyState({ message }: { message: string }) {
 }
 
 /** Small mono tag used for tech stack, topics and categories. */
-export function Tag({ children }: { children: ReactNode }) {
-  return <Badge shape="tag">{children}</Badge>;
+export function Tag({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <Badge shape="tag" className={className}>
+      {children}
+    </Badge>
+  );
 }

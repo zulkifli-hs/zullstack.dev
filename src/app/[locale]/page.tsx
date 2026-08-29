@@ -33,9 +33,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const [config, projects, experience, mentoring, articles, testimonials, openSource] =
     await Promise.all([
       getSiteConfig(),
-      // Eight rather than three: the rail scrolls sideways, so the number
-      // offered is no longer capped by how many fit in one row of a grid.
-      getProjects({ limit: 8 }),
+      // No limit: the rail loops, so every published project comes past on its
+      // own. A cap would only decide which ones never appear.
+      getProjects(),
       getExperience(),
       getMentoringTracks({ limit: 3 }),
       getArticles({ limit: 3 }),

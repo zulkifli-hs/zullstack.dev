@@ -161,6 +161,21 @@
   --signal: var(--color-accent-700);
   --hairline: var(--color-ink-200);
 
+  /* The alpha ramp both rail edges fade along, shared so the two directions
+     cannot drift apart. Plain black at varying alpha, used as a mask over a
+     solid `--background` rather than as `color-mix` stops in the gradient
+     itself: the mixed version downlevels, for a browser without `color-mix`,
+     into six stops of the *same* opaque colour — a solid bar sitting on top of
+     the cards, which is worse than no fade at all. A mask has nothing to
+     downlevel. */
+  --rail-fade-ramp:
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 0.94) 20%,
+    rgb(0 0 0 / 0.76) 40%,
+    rgb(0 0 0 / 0.46) 62%,
+    rgb(0 0 0 / 0.18) 82%,
+    rgb(0 0 0 / 0) 100%;
+
   /* ── Glass, namespace 1 of 4: what the material IS ───────────────────────
      Theme-dependent. Overridden wholesale by [data-theme="dark"].
 
@@ -755,6 +770,35 @@
 @utility lab-dots {
   background-image: radial-gradient(circle, var(--grid-color) 1px, transparent 1px);
   background-size: var(--grid-size) var(--grid-size);
+}
+
+/* Edges for a horizontally scrolling rail, so a card leaves the frame by
+   dissolving into the page rather than being guillotined at the container's
+   gutter.
+
+   Painted OVER the track as an overlay; the mask below is on the overlay, never
+   on the scroller. A masked element is a backdrop root, so masking the track
+   itself would leave every glass card inside it sampling an empty backdrop,
+   losing the refraction that is the whole argument for the lens. The overlay
+   has no children, so it can be masked freely.
+
+   The stops are eased, not linear. `linear-gradient(--background, transparent)`
+   spends most of its length near the midpoint, and the eye reads that as a
+   translucent band with two soft edges — which is the artefact the fade exists
+   to remove. Front-loading the alpha keeps the outer end fully opaque, where
+   the card is actually being clipped, and lets the tail run long and thin. */
+@utility rail-fade-l {
+  background-color: var(--background);
+  /* Prefixing is Lightning CSS's job; writing `-webkit-mask-image` here too
+     made it emit the declaration four times. */
+  mask-image: linear-gradient(to right, var(--rail-fade-ramp));
+}
+
+@utility rail-fade-r {
+  background-color: var(--background);
+  /* Prefixing is Lightning CSS's job; writing `-webkit-mask-image` here too
+     made it emit the declaration four times. */
+  mask-image: linear-gradient(to left, var(--rail-fade-ramp));
 }
 
 /* Monospace metadata. Using mono for everything that is not prose is what makes

@@ -115,9 +115,7 @@
         "noMatch": "No project matches these filters."
       },
       "rail": {
-        "label": "Projects \u2014 scroll sideways for more",
-        "previous": "Previous projects",
-        "next": "More projects"
+        "label": "Projects \u2014 scroll sideways for more"
       },
       "linkKinds": {
         "live": "Live site",

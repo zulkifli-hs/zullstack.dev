@@ -115,9 +115,7 @@
         "noMatch": "Tidak ada proyek yang cocok dengan filter ini."
       },
       "rail": {
-        "label": "Proyek \u2014 geser ke samping untuk melihat lainnya",
-        "previous": "Proyek sebelumnya",
-        "next": "Proyek berikutnya"
+        "label": "Proyek \u2014 geser ke samping untuk melihat lainnya"
       },
       "linkKinds": {
         "live": "Situs langsung",
