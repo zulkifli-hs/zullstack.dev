@@ -17,6 +17,7 @@ import {
 import { cloudinaryPreview, cloudinarySrc, croppedSize, isLong } from "@/lib/images/cloudinary";
 import { cn, pick } from "@/lib/utils";
 import type { GalleryGroup, GalleryImage } from "@/types/content";
+import { trackEvent } from "@/lib/analytics/track";
 
 /**
  * Span classes, written out rather than interpolated.
@@ -124,6 +125,12 @@ export function ProjectGallery({
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
+  /** Opening a screenshot is the strongest signal a case study held someone. */
+  const onOpen = (index: number) => {
+    setOpenIndex(index);
+    trackEvent("gallery", { index });
+  };
+
   const step = useCallback(
     (delta: number) =>
       setOpenIndex((current) =>
@@ -153,7 +160,7 @@ export function ProjectGallery({
                   locale={locale}
                   title={title}
                   labels={labels}
-                  onOpen={setOpenIndex}
+                  onOpen={onOpen}
                   highlight={highlight}
                   onHighlight={onHighlight}
                 />
@@ -166,7 +173,7 @@ export function ProjectGallery({
             locale={locale}
             title={title}
             labels={labels}
-            onOpen={setOpenIndex}
+            onOpen={onOpen}
             highlight={highlight}
             onHighlight={onHighlight}
           />

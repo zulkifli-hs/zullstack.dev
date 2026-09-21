@@ -19,6 +19,7 @@ import {
 import { NativeSelect } from "@/components/ui/native-select";
 import type { Locale } from "@/i18n/routing";
 import { LIFECYCLES, PLATFORMS, type Lifecycle, type Platform } from "@/lib/content-enums";
+import { trackEvent } from "@/lib/analytics/track";
 import { CATEGORY_ICONS, categoryFacets } from "@/lib/project-category";
 import { pick } from "@/lib/utils";
 import type { Project, ProjectCategory } from "@/types/content";
@@ -130,11 +131,22 @@ export function ProjectBrowser({ items, locale }: { items: Project[]; locale: Lo
   // undo, which is why reset watches it too.
   const isDirty = activeFilters > 0 || sort !== "featured";
 
+  /**
+   * Every control reports through here.
+   *
+   * One reporter rather than a `trackEvent` beside each `setState`: a fifth
+   * filter added later gets its analytics by using this, and the dashboard's
+   * goals table stays a list of `{ control, value }` pairs rather than four
+   * separately-shaped events.
+   */
+  const report = (control: string, value: string) => trackEvent("filter", { control, value });
+
   const reset = () => {
     setCategory(ALL);
     setPlatform(ALL);
     setLifecycle(ALL);
     setSort("featured");
+    report("reset", "all");
   };
 
   return (
@@ -211,7 +223,10 @@ export function ProjectBrowser({ items, locale }: { items: Project[]; locale: Lo
               <BadgeButton
                 aria-pressed={category === ALL}
                 tone={category === ALL ? "signal" : "neutral"}
-                onClick={() => setCategory(ALL)}
+                onClick={() => {
+                  setCategory(ALL);
+                  report("category", ALL);
+                }}
               >
                 {t("browse.categoryAll")}
                 <span className="tabular opacity-60">{items.length}</span>
@@ -226,7 +241,10 @@ export function ProjectBrowser({ items, locale }: { items: Project[]; locale: Lo
                     key={value}
                     aria-pressed={active}
                     tone={active ? "signal" : "neutral"}
-                    onClick={() => setCategory(active ? ALL : value)}
+                    onClick={() => {
+                      setCategory(active ? ALL : value);
+                      report("category", active ? ALL : value);
+                    }}
                   >
                     <Icon aria-hidden className="size-3.5" />
                     {t(`category.${value}`)}
@@ -241,7 +259,10 @@ export function ProjectBrowser({ items, locale }: { items: Project[]; locale: Lo
             <Group label={t("browse.platform")} inline>
               <NativeSelect
                 value={platform}
-                onChange={(event) => setPlatform(event.target.value as Platform | typeof ALL)}
+                onChange={(event) => {
+                  setPlatform(event.target.value as Platform | typeof ALL);
+                  report("platform", event.target.value);
+                }}
               >
                 <option value={ALL}>{t("browse.platformAll")}</option>
                 {platforms.map((value) => (
@@ -255,7 +276,10 @@ export function ProjectBrowser({ items, locale }: { items: Project[]; locale: Lo
             <Group label={t("browse.lifecycleLabel")} inline>
               <NativeSelect
                 value={lifecycle}
-                onChange={(event) => setLifecycle(event.target.value as Lifecycle | typeof ALL)}
+                onChange={(event) => {
+                  setLifecycle(event.target.value as Lifecycle | typeof ALL);
+                  report("lifecycle", event.target.value);
+                }}
               >
                 <option value={ALL}>{t("browse.lifecycleAll")}</option>
                 {lifecycles.map((value) => (
@@ -269,7 +293,10 @@ export function ProjectBrowser({ items, locale }: { items: Project[]; locale: Lo
             <Group label={t("browse.sort")} inline className="sm:col-span-2">
               <NativeSelect
                 value={sort}
-                onChange={(event) => setSort(event.target.value as Sort)}
+                onChange={(event) => {
+                  setSort(event.target.value as Sort);
+                  report("sort", event.target.value);
+                }}
               >
                 {SORTS.map((value) => (
                   <option key={value} value={value}>

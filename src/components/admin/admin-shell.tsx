@@ -2,6 +2,7 @@ import {
   BookOpen,
   Briefcase,
   Building2,
+  ChartSpline,
   FileText,
   FlaskConical,
   GitBranch,
@@ -20,6 +21,9 @@ import { SignOutButton } from "@/components/admin/sign-out-button";
 
 export const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  // Not `ChartNoAxesCombined` — that icon already means the
+  // "Data & Analytics" project category on the public site.
+  { href: "/admin/analytics", label: "Analytics", icon: ChartSpline },
   { href: "/admin/projects", label: "Projects", icon: FlaskConical },
   { href: "/admin/experience", label: "Experience", icon: Briefcase },
   // The company directory behind both the project credits and the experience

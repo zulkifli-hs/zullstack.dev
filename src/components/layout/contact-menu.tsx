@@ -7,6 +7,7 @@ import type { ReactElement } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { ContactChannel } from "@/lib/contact";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics/track";
 
 const ICONS = {
   email: Mail,
@@ -50,6 +51,9 @@ export function ContactMenu({
               <a
                 key={channel.id}
                 href={channel.href}
+                // Not covered by the tracker's automatic outbound listener: a
+                // `mailto:` is neither http nor https, so it is skipped there.
+                onClick={() => trackEvent("contact", { channel: channel.id })}
                 target={channel.id === "whatsapp" ? "_blank" : undefined}
                 rel={channel.id === "whatsapp" ? "noopener noreferrer" : undefined}
                 className={cn(
