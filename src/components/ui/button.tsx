@@ -1,5 +1,6 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
+import { cloneElement, isValidElement, type ReactElement } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -67,19 +68,53 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  render,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   const isGlass = variant === "glass" || variant === "glassProminent";
+  // Drives the no-glass-on-glass cascade guard and the forced-colors reset.
+  const surface = isGlass ? "glass" : "flat";
+  const classes = cn(buttonVariants({ variant, size, className }));
+
+  // A `render` that is not a <button> is a link wearing a button's clothes, and
+  // it is given its classes directly rather than routed through the primitive.
+  //
+  // Base UI checks `nativeButton` against the real element after mount, so
+  // every `render={<Link/>}` here — both hero CTAs, the page CTA, the project
+  // links, the admin "new" buttons — was an anchor claiming to be a button, and
+  // logged an error saying so. Setting `nativeButton={false}` silences it but
+  // is the worse trade: the primitive then stamps `role="button"` on the
+  // anchor, and a link announced as a button is a downgrade for anyone who
+  // navigates by role or expects to be able to open it in a new tab.
+  //
+  // Neither default fits, because the element is genuinely a link. So it stays
+  // one: real link semantics, no button behaviour bolted onto an element that
+  // already activates itself, and no stray `type="button"` on an `<a>`.
+  if (isElementRender(render) && render.type !== "button") {
+    return cloneElement(render, {
+      "data-slot": "button",
+      "data-surface": surface,
+      ...props,
+      className: cn(classes, render.props.className),
+    } as Partial<typeof render.props>);
+  }
 
   return (
     <ButtonPrimitive
       data-slot="button"
-      // Drives the no-glass-on-glass cascade guard and the forced-colors reset.
-      data-surface={isGlass ? "glass" : "flat"}
-      className={cn(buttonVariants({ variant, size, className }))}
+      data-surface={surface}
+      render={render}
+      className={classes}
       {...props}
     />
   );
+}
+
+/** Narrows `render` to an element whose props we can read and extend. */
+function isElementRender(
+  render: ButtonPrimitive.Props["render"],
+): render is ReactElement<{ className?: string }> {
+  return isValidElement(render);
 }
 
 export { Button, buttonVariants };

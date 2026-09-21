@@ -5,6 +5,7 @@ import {
   DEFAULT_GALLERY_ROWS,
   PUBLIC_PARTNER_KINDS,
   SPAN_TO_COLS,
+  toProjectCategory,
   type GallerySpan,
 } from "./content-enums";
 import { connectDB, isDatabaseConfigured } from "./db";
@@ -177,6 +178,11 @@ function normalizeProject(doc: Record<string, unknown>): Record<string, unknown>
     galleryGroups: Array.isArray(doc.galleryGroups) ? doc.galleryGroups : [],
     partners: Array.isArray(doc.partners) ? doc.partners : [],
     lifecycle: doc.lifecycle ?? "live",
+    // Coerced rather than defaulted: `category` is not a new *name*. Seeded
+    // documents carry "web"/"mobile" there — a copy of `platforms` under a key
+    // that now means the domain — and those would otherwise reach the icon and
+    // label maps as a miss.
+    category: toProjectCategory(doc.category),
     problem: localizedOrEmpty(doc.problem),
     role: localizedOrEmpty(doc.role),
     responsibilities: listOrEmpty(doc.responsibilities),

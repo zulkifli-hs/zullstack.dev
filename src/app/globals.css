@@ -154,12 +154,50 @@
   --ring: var(--color-brand-600);
   --radius: 0.75rem;
 
+  /* ── Chart marks ──────────────────────────────────────────────────────────
+     `--color-chart-1..5` were mapped in `@theme inline` but never defined, so
+     every `bg-chart-*` resolved to nothing. These are the definitions.
+
+     Computed, not chosen. Each set was run through the dataviz validator —
+     lightness band, chroma floor, CVD separation, normal-vision floor and
+     contrast against this mode's surface — and the dark set is its own steps,
+     not a flip of the light one. Note the dark band sits *lower* (L .48–.67)
+     than the light one, which is why `--link`/`--signal` cannot double as chart
+     marks: those are tuned for 7:1 text contrast and land far above it.
+
+     Slots 1 and 2 are pinned to the logo hues and are the only two anything
+     currently renders; as a pair they clear CVD by ΔE 32 with no warnings.
+     Slots 3–5 pass with two caveats, so read them before using one: light-mode
+     3 and 5 fall below 3:1 on the surface (they need a visible label or a table
+     beside them) and the 3↔4 pair sits in the 6–8 CVD band (it needs a second
+     encoding — a direct label, a gap or a texture — not colour alone). */
+  --chart-1: oklch(0.578 0.227 264.4); /* the logo blue, = brand-600 */
+  --chart-2: oklch(0.545 0.155 133.9); /* the logo green, darkened to clear white */
+  --chart-3: oklch(0.69 0.156 55);
+  --chart-4: oklch(0.579 0.2 310.1);
+  --chart-5: oklch(0.715 0.12 200.4);
+
   /* Text-safe interactive colors. brand-700 = 6.30:1 on white. */
   --link: var(--color-brand-700);
   /* accent-700 = 5.74:1 on white. Reads olive — that is the honest cost of
      a 1.47:1 brand green, and it is preferable to illegible text. */
   --signal: var(--color-accent-700);
   --hairline: var(--color-ink-200);
+
+  /* The alpha ramp both rail edges fade along, shared so the two directions
+     cannot drift apart. Plain black at varying alpha, used as a mask over a
+     solid `--background` rather than as `color-mix` stops in the gradient
+     itself: the mixed version downlevels, for a browser without `color-mix`,
+     into six stops of the *same* opaque colour — a solid bar sitting on top of
+     the cards, which is worse than no fade at all. A mask has nothing to
+     downlevel. */
+  --rail-fade-ramp:
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 0.94) 20%,
+    rgb(0 0 0 / 0.76) 40%,
+    rgb(0 0 0 / 0.46) 62%,
+    rgb(0 0 0 / 0.18) 82%,
+    rgb(0 0 0 / 0) 100%;
 
   /* ── Glass, namespace 1 of 4: what the material IS ───────────────────────
      Theme-dependent. Overridden wholesale by [data-theme="dark"].
@@ -273,6 +311,15 @@
   --border: var(--color-ink-800);
   --input: var(--color-ink-800);
   --ring: var(--color-brand-500);
+
+  /* Their own steps, inside the dark band (L .48–.67) — deliberately darker
+     than the light set, which is the opposite of the usual instinct to
+     brighten everything for dark mode. Validated against ink-950. */
+  --chart-1: oklch(0.6 0.19 264.5);
+  --chart-2: oklch(0.64 0.17 133.9);
+  --chart-3: oklch(0.558 0.132 55.3);
+  --chart-4: oklch(0.645 0.149 309.7);
+  --chart-5: oklch(0.659 0.111 199.4);
 
   --link: var(--color-brand-400); /* 7.71:1 on ink-950 */
   --signal: var(--color-accent-250); /* 13.24:1 on ink-950 — the green finally works */
@@ -755,6 +802,35 @@
 @utility lab-dots {
   background-image: radial-gradient(circle, var(--grid-color) 1px, transparent 1px);
   background-size: var(--grid-size) var(--grid-size);
+}
+
+/* Edges for a horizontally scrolling rail, so a card leaves the frame by
+   dissolving into the page rather than being guillotined at the container's
+   gutter.
+
+   Painted OVER the track as an overlay; the mask below is on the overlay, never
+   on the scroller. A masked element is a backdrop root, so masking the track
+   itself would leave every glass card inside it sampling an empty backdrop,
+   losing the refraction that is the whole argument for the lens. The overlay
+   has no children, so it can be masked freely.
+
+   The stops are eased, not linear. `linear-gradient(--background, transparent)`
+   spends most of its length near the midpoint, and the eye reads that as a
+   translucent band with two soft edges — which is the artefact the fade exists
+   to remove. Front-loading the alpha keeps the outer end fully opaque, where
+   the card is actually being clipped, and lets the tail run long and thin. */
+@utility rail-fade-l {
+  background-color: var(--background);
+  /* Prefixing is Lightning CSS's job; writing `-webkit-mask-image` here too
+     made it emit the declaration four times. */
+  mask-image: linear-gradient(to right, var(--rail-fade-ramp));
+}
+
+@utility rail-fade-r {
+  background-color: var(--background);
+  /* Prefixing is Lightning CSS's job; writing `-webkit-mask-image` here too
+     made it emit the declaration four times. */
+  mask-image: linear-gradient(to left, var(--rail-fade-ramp));
 }
 
 /* Monospace metadata. Using mono for everything that is not prose is what makes

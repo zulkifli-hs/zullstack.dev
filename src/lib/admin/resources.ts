@@ -21,6 +21,7 @@ import {
   PARTNER_KINDS,
   PARTNER_ROLES,
   PLATFORMS,
+  PROJECT_CATEGORIES,
 } from "@/lib/models/shared";
 
 import { ORDER_FIELD, STATUS_FIELD, type Field } from "./fields";
@@ -72,6 +73,7 @@ export const RESOURCES: Record<ResourceKey, ResourceDef> = {
     titleField: "title",
     listColumns: [
       { name: "year", label: "Year" },
+      { name: "category", label: "Category" },
       { name: "lifecycle", label: "Lifecycle" },
     ],
     sort: { featured: -1, order: 1, year: -1 },
@@ -84,6 +86,7 @@ export const RESOURCES: Record<ResourceKey, ResourceDef> = {
       { name: "platforms", label: "Platforms", type: "multiselect", options: PLATFORMS, required: true, wide: true, group: "Basics", help: "Everything this engagement covered — a web app with a companion phone app and a CMS is all three." },
       { name: "year", label: "Year", type: "number", required: true, group: "Basics" },
       { name: "lifecycle", label: "Lifecycle", type: "select", options: LIFECYCLES, required: true, group: "Basics", help: "Where the work stands today. Sunsetted projects stay publishable." },
+      { name: "category", label: "Category", type: "select", options: PROJECT_CATEGORIES, required: true, group: "Basics", help: "The domain the work is in, not what it was built with — that is Platforms. One only: pick the domain a visitor would look under. The listing page's filter chips are built from whichever categories are actually in use." },
       { name: "featured", label: "Favorite", type: "boolean", group: "Basics", help: "Pins this above every other project, however new they are." },
 
       { name: "problem", label: "Problem", type: "localized-textarea", wide: true, group: "Story", help: "What this existed to solve. Shown above the description." },

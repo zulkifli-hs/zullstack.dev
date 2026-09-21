@@ -415,7 +415,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
             <h2 className="text-lg font-semibold tracking-tight">{t("other")}</h2>
             <Link
               href="/projects"
-              className="text-link group inline-flex items-center gap-1 text-sm font-medium hover:underline"
+              className="text-signal group inline-flex items-center gap-1 text-sm font-medium hover:underline"
             >
               {t("cta")}
               <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

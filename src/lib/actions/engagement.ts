@@ -1,47 +1,15 @@
 "use server";
 
-import { createHash, randomUUID } from "node:crypto";
-import { cookies, headers } from "next/headers";
+import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { connectDB } from "@/lib/db";
 import { Article, Comment, Like } from "@/lib/models";
-
-const VISITOR_COOKIE = "zullstack-visitor";
-
-/**
- * A stable per-visitor identifier, used to make likes idempotent.
- *
- * Deliberately not tied to any personal data — it is a random UUID this browser
- * happens to hold, so it identifies a browser, not a person. Hashed before
- * storage so the raw cookie value never sits in the database.
- */
-async function visitorHash(): Promise<string> {
-  const jar = await cookies();
-  let id = jar.get(VISITOR_COOKIE)?.value;
-
-  if (!id) {
-    id = randomUUID();
-    jar.set(VISITOR_COOKIE, id, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 365,
-      path: "/",
-    });
-  }
-
-  return createHash("sha256").update(id).digest("hex");
-}
-
-/** IP is hashed, never stored raw — it is only needed to rate-limit. */
-async function ipHash(): Promise<string> {
-  const head = await headers();
-  const raw =
-    head.get("x-forwarded-for")?.split(",")[0]?.trim() || head.get("x-real-ip") || "unknown";
-  return createHash("sha256").update(raw).digest("hex");
-}
+// Shared with the analytics ingest route. They cannot live in this file: it is
+// `"use server"`, so every export here is a Server Action, and a Route Handler
+// cannot import one. See `lib/visitor.ts`.
+import { ipHash, readVisitorHash, visitorHash } from "@/lib/visitor";
 
 const commentSchema = z.object({
   articleSlug: z.string().trim().min(1),
@@ -150,15 +118,11 @@ export async function getLikeState(articleSlug: string) {
   const article = await Article.findOne({ slug: articleSlug }).select("_id likeCount");
   if (!article) return { liked: false, count: 0 };
 
-  const jar = await cookies();
-  const id = jar.get(VISITOR_COOKIE)?.value;
-  const liked = id
-    ? Boolean(
-        await Like.exists({
-          articleId: article._id,
-          visitorHash: createHash("sha256").update(id).digest("hex"),
-        }),
-      )
+  // Read-only: a visitor who has never liked anything must not be handed a
+  // cookie merely for rendering the button's initial state.
+  const visitor = await readVisitorHash();
+  const liked = visitor
+    ? Boolean(await Like.exists({ articleId: article._id, visitorHash: visitor }))
     : false;
 
   return { liked, count: Number(article.likeCount ?? 0) };

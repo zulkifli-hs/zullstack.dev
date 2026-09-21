@@ -71,6 +71,52 @@
         "sunsetted": "Sunsetted",
         "internal": "Internal"
       },
+      "category": {
+        "govtech": "Govtech",
+        "saas": "SaaS & Operations",
+        "marketplace": "Marketplace & Commerce",
+        "community": "Community & Membership",
+        "data-analytics": "Data & Analytics",
+        "ai": "AI",
+        "field-ops": "Field Operations",
+        "corporate": "Corporate Site",
+        "fintech": "Fintech",
+        "edtech": "Education",
+        "healthtech": "Health",
+        "logistics": "Logistics",
+        "iot": "IoT & Hardware",
+        "devtools": "Developer Tools",
+        "internal-tools": "Internal Tools",
+        "media": "Media & Content",
+        "other": "Other"
+      },
+      "sort": {
+        "featured": "Favorites first",
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+        "az": "Title A\u2013Z",
+        "za": "Title Z\u2013A"
+      },
+      "browse": {
+        "filters": "Filter",
+        "dialogTitle": "Filter & sort",
+        "dialogDescription": "Narrow the list by domain, platform and status, and pick an order. Changes apply as you make them.",
+        "done": "Done",
+        "activeFilters": "{count, plural, one {# active filter} other {# active filters}}",
+        "category": "Category",
+        "categoryAll": "All",
+        "platform": "Platform",
+        "platformAll": "Any platform",
+        "lifecycleLabel": "Status",
+        "lifecycleAll": "Any status",
+        "sort": "Sort",
+        "reset": "Reset filters",
+        "results": "{count, plural, =0 {No projects} one {# project} other {# projects}}",
+        "noMatch": "No project matches these filters."
+      },
+      "rail": {
+        "label": "Projects \u2014 scroll sideways for more"
+      },
       "linkKinds": {
         "live": "Live site",
         "repo": "Source",

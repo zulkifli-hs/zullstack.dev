@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 import type { SearchHit } from "@/app/api/search/route";
+import { trackEvent } from "@/lib/analytics/track";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "@/i18n/navigation";
@@ -75,6 +76,10 @@ export function CommandMenu() {
           setHits(data.hits);
           setActive(0);
           setLoading(false);
+          // Recorded here rather than on selection, so searches that found
+          // nothing are counted too — those are the interesting ones, because
+          // they are the content people expected and did not get.
+          trackEvent("search", { query: query.trim().slice(0, 80), results: data.hits.length });
         })
         .catch(() => {
           // An aborted request is the expected path when typing continues.

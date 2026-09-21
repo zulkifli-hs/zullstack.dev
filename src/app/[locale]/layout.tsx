@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 
+import { AnalyticsTracker } from "@/components/analytics/tracker";
 import { LensFilter } from "@/components/glass/lens-filter";
 import { LensProvider } from "@/components/glass/lens-provider";
 import { LabBackground } from "@/components/lab/lab-background";
@@ -14,6 +15,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { TransparencyScript } from "@/components/providers/transparency-script";
 import { resolveLocale } from "@/i18n/resolve-locale";
 import { routing } from "@/i18n/routing";
+import { analyticsEnabled } from "@/lib/analytics/env";
 import { ICONS } from "@/lib/brand";
 import { contactChannels } from "@/lib/contact";
 import { getSiteConfig } from "@/lib/queries";
@@ -135,6 +137,12 @@ export default async function LocaleLayout({
             <div aria-hidden className="h-24 lg:hidden" />
             <TabBar />
             <ContactFab channels={contactChannels(config)} />
+            {/* Mounted here, not in the root, because `/admin` sits outside
+                `[locale]` — so the CMS goes untracked without a path check that
+                could later be got wrong. The flag is resolved on the server at
+                prerender time, when `VERCEL_ENV` already distinguishes a
+                production deploy from a preview or a local build. */}
+            <AnalyticsTracker enabled={analyticsEnabled()} />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

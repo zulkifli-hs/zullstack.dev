@@ -15,6 +15,7 @@ import type {
   PartnerKind,
   PartnerRole,
   Platform,
+  ProjectCategory,
   PublishStatus,
   StoredImage,
   TeamMember,
@@ -37,6 +38,7 @@ export type {
   PartnerKind,
   PartnerRole,
   Platform,
+  ProjectCategory,
   PublishStatus,
   StoredImage,
   TeamMember,
@@ -91,6 +93,8 @@ export type Project = Base & {
   problem: Localized;
   platforms: Platform[];
   lifecycle: Lifecycle;
+  /** Primary domain. Always present — the read layer coerces anything else. */
+  category: ProjectCategory;
   techStack: string[];
   role: Localized;
   responsibilities: { en: string[]; id: string[] };

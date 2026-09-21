@@ -284,3 +284,63 @@ export const PLATFORMS = [
   "other",
 ] as const;
 export type Platform = (typeof PLATFORMS)[number];
+
+/**
+ * What domain the work is *in*.
+ *
+ * The third axis, and the only one that answers "what kind of thing is this".
+ * `platforms` says what was built (web, mobile, an API) and `lifecycle` says
+ * whether it still runs — neither distinguishes a ministry's fraud monitor from
+ * a pet grooming SaaS, which is the first thing a visitor actually sorts on.
+ *
+ * Single-valued on purpose. A project's *primary* domain is a judgement worth
+ * making once, and a filter over a multi-valued field turns every chip into an
+ * OR that can return the same project three times over. Where two domains are
+ * genuinely both true — an AI-powered career platform is SaaS as well — the
+ * secondary one is already visible in the tech stack and the summary.
+ *
+ * The list runs ahead of the work deliberately: the first fintech or health
+ * project should be publishable without a schema change and a migration. The
+ * filter UI derives its chips from the projects actually present, so a category
+ * nobody has used yet costs nothing until it is used.
+ */
+export const PROJECT_CATEGORIES = [
+  /* In use today */
+  "govtech",
+  "saas",
+  "marketplace",
+  "community",
+  "data-analytics",
+  "ai",
+  "field-ops",
+  "corporate",
+  /* Held open for work not built yet */
+  "fintech",
+  "edtech",
+  "healthtech",
+  "logistics",
+  "iot",
+  "devtools",
+  "internal-tools",
+  "media",
+  "other",
+] as const;
+
+export type ProjectCategory = (typeof PROJECT_CATEGORIES)[number];
+
+export const DEFAULT_PROJECT_CATEGORY: ProjectCategory = "other";
+
+/**
+ * Coerces a stored value to a category the UI can actually render.
+ *
+ * Needed because `category` is not a new field name — documents seeded before
+ * this carry `"web"` or `"mobile"` there, a duplicate of `platforms` under a
+ * name that now means something else. Anything outside the set falls back to
+ * `other` rather than reaching a component that indexes straight into the icon
+ * and label maps with it.
+ */
+export function toProjectCategory(value: unknown): ProjectCategory {
+  return PROJECT_CATEGORIES.includes(value as ProjectCategory)
+    ? (value as ProjectCategory)
+    : DEFAULT_PROJECT_CATEGORY;
+}

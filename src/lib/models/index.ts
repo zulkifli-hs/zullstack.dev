@@ -14,6 +14,7 @@ import {
   LOCATION_TYPES,
   PARTNER_KINDS,
   PLATFORMS,
+  PROJECT_CATEGORIES,
   projectLinkSchema,
   projectPartnerSchema,
   teamMemberSchema,
@@ -72,6 +73,10 @@ const projectSchema = new Schema(
     // Where the work stands today. Deliberately separate from `status`, which
     // is editorial: a sunsetted project is still worth publishing.
     lifecycle: { type: String, enum: LIFECYCLES, default: "live" },
+    // The domain the work is in — the question `platforms` and `lifecycle`
+    // cannot answer. Single-valued, and indexed because it is the field the
+    // listing page filters on.
+    category: { type: String, enum: PROJECT_CATEGORIES, default: "other", index: true },
     techStack: { type: [String], default: [] },
     role: localized(false),
     responsibilities: localizedList(),
@@ -374,6 +379,131 @@ const siteConfigSchema = new Schema(
   baseSchemaOptions,
 );
 
+/* ── Analytics ────────────────────────────────────────────────────────────── */
+
+/**
+ * The salt that makes a visitor identifier unlinkable across days.
+ *
+ * A singleton, rotated at UTC midnight with the previous value overwritten and
+ * gone. That destruction is the whole mechanism: yesterday's hashes cannot be
+ * recomputed by anyone, including us, which is what keeps the identifier out of
+ * "personal data" territory and the site out of needing a consent banner.
+ *
+ * Stored rather than derived from a secret. A deterministic salt would rotate
+ * just as neatly, but anyone holding the secret could regenerate any past day
+ * and re-link a visitor's history — which is precisely the capability this is
+ * supposed to give up.
+ */
+const analyticsSaltSchema = new Schema(
+  {
+    _id: { type: String, default: "salt" },
+    value: { type: String, required: true },
+    /** UTC `YYYY-MM-DD`. Compared as a string so no timezone can creep in. */
+    date: { type: String, required: true },
+  },
+  { versionKey: false, timestamps: { createdAt: false, updatedAt: true } },
+);
+
+const utmSchema = new Schema(
+  {
+    source: { type: String, default: "" },
+    medium: { type: String, default: "" },
+    campaign: { type: String, default: "" },
+    content: { type: String, default: "" },
+    term: { type: String, default: "" },
+  },
+  { _id: false },
+);
+
+/**
+ * Custom event properties, as pairs rather than a free-form object.
+ *
+ * `{ key, value }[]` costs a little verbosity at write time and saves a great
+ * deal at read time: a breakdown by property is `$unwind` then `$group`, where
+ * a Mixed object would need `$objectToArray` on every document first.
+ */
+const analyticsPropSchema = new Schema(
+  { key: { type: String, required: true }, value: { type: String, default: "" } },
+  { _id: false },
+);
+
+/**
+ * One pageview or custom event.
+ *
+ * No `baseFields`: these are not content. Nothing here is drafted, published,
+ * ordered or edited, and giving them a `status` would only invite a listing
+ * page to try to render them.
+ *
+ * Note what is absent — no IP, no user-agent string, no cookie value. Only the
+ * salted hash and the parsed shape of the client survive ingestion.
+ */
+const analyticsEventSchema = new Schema(
+  {
+    visitorId: { type: String, required: true },
+    sessionId: { type: String, required: true },
+
+    type: { type: String, enum: ["pageview", "event"], default: "pageview" },
+    /** Custom event name; empty for a pageview. */
+    name: { type: String, default: "" },
+
+    /** Locale-stripped, so `/projects` aggregates across `/en` and `/id`. */
+    path: { type: String, required: true },
+    locale: { type: String, default: "" },
+    title: { type: String, default: "" },
+
+    referrerHost: { type: String, default: "" },
+    /** Grouped label — "Google", "LinkedIn", "Direct". */
+    source: { type: String, default: "Direct" },
+    utm: { type: utmSchema, default: () => ({}) },
+
+    country: { type: String, default: "" },
+    region: { type: String, default: "" },
+    city: { type: String, default: "" },
+
+    browser: { type: String, default: "" },
+    browserVersion: { type: String, default: "" },
+    os: { type: String, default: "" },
+    deviceType: { type: String, default: "desktop" },
+    viewportW: { type: Number, default: 0 },
+    viewportH: { type: Number, default: 0 },
+
+    /**
+     * First event of its session. Known for certain at ingest.
+     *
+     * There is deliberately no `isExit` twin. The leave-beacon that would set
+     * one is the least reliable message the client sends — a killed tab, a
+     * crashed browser or a dead network loses it — so an exit flag would
+     * quietly under-count. The last event of a session by `createdAt` is the
+     * exit page, and that is computed at query time from data that is always
+     * there.
+     */
+    isEntry: { type: Boolean, default: false },
+
+    /** Visible time only, and scroll high-water mark. Filled by the leave-beacon. */
+    durationMs: { type: Number, default: 0 },
+    scrollDepth: { type: Number, default: 0 },
+
+    props: { type: [analyticsPropSchema], default: [] },
+  },
+  { timestamps: { createdAt: true, updatedAt: false } },
+);
+
+/**
+ * Raw events expire after 180 days.
+ *
+ * A single-field TTL index, which also serves every range query and both sort
+ * directions — so there is no separate `{ createdAt: -1 }` to maintain.
+ */
+analyticsEventSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 180 });
+/** Top pages, and the per-page detail view. */
+analyticsEventSchema.index({ path: 1, createdAt: -1 });
+/** Session rollups: bounce, duration, entry and exit pages. */
+analyticsEventSchema.index({ sessionId: 1, createdAt: 1 });
+/** Session stitching reads exactly this on every single ingest. */
+analyticsEventSchema.index({ visitorId: 1, createdAt: -1 });
+/** The custom-events / goals table. */
+analyticsEventSchema.index({ type: 1, name: 1, createdAt: -1 });
+
 export const Project = models.Project ?? model("Project", projectSchema);
 export const Partner = models.Partner ?? model("Partner", partnerSchema);
 export const Experience = models.Experience ?? model("Experience", experienceSchema);
@@ -386,3 +516,7 @@ export const Resource = models.Resource ?? model("Resource", resourceSchema);
 export const OpenSource = models.OpenSource ?? model("OpenSource", openSourceSchema);
 export const Snippet = models.Snippet ?? model("Snippet", snippetSchema);
 export const SiteConfig = models.SiteConfig ?? model("SiteConfig", siteConfigSchema);
+export const AnalyticsEvent =
+  models.AnalyticsEvent ?? model("AnalyticsEvent", analyticsEventSchema);
+export const AnalyticsSalt =
+  models.AnalyticsSalt ?? model("AnalyticsSalt", analyticsSaltSchema);
